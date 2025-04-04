@@ -1,7 +1,6 @@
 import axios, {InternalAxiosRequestConfig} from "axios";
 import {settings} from "./config";
 import {getToken} from "./auth";
-import {Platform} from "react-native";
 
 const apiClient = axios.create({
     baseURL: settings.API_URL,
@@ -16,7 +15,6 @@ if (settings.DEBUG_REQUESTS) {
     apiClient.interceptors.request.use(async request => {
             let dataToLog = request.data;
 
-            // check clearly and explicitly if request data is FormData
             if (request.data instanceof FormData) {
                 dataToLog = {};
 

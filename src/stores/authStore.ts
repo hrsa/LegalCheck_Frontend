@@ -54,7 +54,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
             await get().fetchUser();
         } catch (error: any) {
-            set({error: error.response?.data?.message || error.message, user: null});
+            const errorDetail = error.response?.data?.detail;
+            const errorMessage = error.response?.data?.message;
+            let finalError = errorDetail || errorMessage || error.message || "An unknown error occurred";
+            if (error.status) finalError += ` (${error.status})`;
+
+            set({error: finalError || error.message, user: null});
         } finally {
             set({loading: false});
         }
@@ -62,6 +67,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     logout: async () => {
         set({loading: true});
         await apiClient.post("/auth/logout");
+
+        if (!settings.MOBILE_PLATFORM) {
+            document.cookie = "legalcheck_access_token=; path=/; max-age=0;";
+        }
 
         if (settings.MOBILE_PLATFORM) {
             await deleteToken();
@@ -73,10 +82,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     fetchUser: async () => {
         set({loading: true});
         try {
+            console.log("Fetching user");
             const {data} = await apiClient.get("/users/me");
             set({user: data});
             if (settings.DEBUG_REQUESTS) console.log("Fetched user:", data);
-        } catch (err) {
+        } catch (err: any) {
+            console.error("Error fetching user:", err);
+            if (settings.MOBILE_PLATFORM) {
+                await deleteToken();
+            }
             set({user: null});
         } finally {
             set({loading: false});
