@@ -4,7 +4,7 @@ import {TouchableOpacity, Text, ActivityIndicator, TouchableOpacityProps} from '
 interface ButtonProps extends TouchableOpacityProps {
     title: string;
     loading?: boolean;
-    variant?: 'primary' | 'secondary' | 'danger';
+    variant?: 'primary' | 'secondary' | 'danger' | "success" | "transparent";
     className?: string;
     textClassName?: string;
 }
@@ -26,13 +26,18 @@ export default function Button({
         secondary: 'bg-violet-500',
         danger: 'bg-red-500',
         success: 'bg-green-500',
+        transparent: 'bg-transparent',
     };
 
     // Disabled state
     const disabledStyle = (disabled || loading) ? 'opacity-50' : '';
 
     // Text styles
-    const baseTextStyles = 'text-white font-medium text-center';
+    let baseTextStyles = 'font-medium text-center';
+
+    if (variant === 'transparent') {
+        baseTextStyles += ' text-black';
+    } else baseTextStyles += ' text-white';
 
     return (
         <TouchableOpacity
