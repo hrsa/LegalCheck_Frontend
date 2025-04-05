@@ -32,7 +32,9 @@ function InitialLayout() {
         );
     }
 
-    return <Stack />
+    return <Stack screenOptions={{
+        headerShown: false
+    }} />
 }
 
 export default function RootLayout() {

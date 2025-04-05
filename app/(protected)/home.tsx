@@ -6,8 +6,11 @@ export default function HomeScreen() {
     const { user, logout, loading } = useAuthStore();
 
     return (
-        <View style={{ flex:1,justifyContent:'center',alignItems:'center' }}>
-            <Text style={{marginBottom:10}}>Welcome, {user?.email}!</Text>
+        <View style={{ flex: 1, padding: 16 }}>
+            <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 16 }}>
+                Home
+            </Text>
+            <Text style={{ marginBottom: 10 }}>Welcome, {user?.email}!</Text>
             <Text>This is your home screen.</Text>
             <Text>Your name is: {user?.first_name}, and your surname is: {user?.last_name}</Text>
             <Button
