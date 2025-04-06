@@ -2,27 +2,7 @@ import {create} from "zustand";
 import apiClient from "../services/api/apiClient";
 import {settings} from "../services/api/config";
 import {deleteToken, storeToken} from "../services/api/auth";
-
-interface User {
-    id: number;
-    email: string;
-    is_active: boolean;
-    is_superuser: boolean;
-    is_verified: boolean;
-    first_name: string;
-    last_name: string;
-    company_id: number;
-}
-
-interface AuthState {
-    user: User | null;
-    loading: boolean;
-    error: string | null;
-
-    login: (email: string, password: string) => Promise<void>;
-    logout: () => Promise<void>;
-    fetchUser: () => Promise<void>;
-}
+import {User, AuthState} from "../types/auth.types";
 
 export const useAuthStore = create<AuthState>((set, get) => ({
     user: null,

@@ -1,29 +1,6 @@
 import {create} from "zustand";
 import apiClient from "../services/api/apiClient";
-
-export interface Policy {
-    id: number;
-    name: string;
-    description: string;
-    policy_type: string;
-    is_active: boolean;
-    created_at: string;
-    updated_at: string;
-}
-
-interface PolicyState {
-    policies: Policy[];
-    loading: boolean;
-    error: string | null;
-    currentPolicy: Policy | null;
-    editModalVisible: boolean;
-    updating: boolean;
-
-    fetchPolicies: () => Promise<void>;
-    updatePolicy: (id: number, data: Partial<Policy>) => Promise<void>;
-    setCurrentPolicy: (policy: Policy | null) => void;
-    setEditModalVisible: (visible: boolean) => void;
-}
+import {Policy, PolicyState, Rule} from "../types/policy.types";
 
 export const usePolicyStore = create<PolicyState>((set, get) => ({
     policies: [],
@@ -32,6 +9,9 @@ export const usePolicyStore = create<PolicyState>((set, get) => ({
     currentPolicy: null,
     editModalVisible: false,
     updating: false,
+    currentRule: null,
+    ruleEditModalVisible: false,
+    updatingRule: false,
 
     fetchPolicies: async () => {
         set({loading: true, error: null});
@@ -68,11 +48,109 @@ export const usePolicyStore = create<PolicyState>((set, get) => ({
         }
     },
 
+    createPolicy: async (data: Partial<Policy>) => {
+        set({updating: true});
+        try {
+            const response = await apiClient.post('/policies/', data);
+            const newPolicy = response.data;
+
+            const { policies } = get();
+            set({
+                policies: [...policies, newPolicy]
+            });
+
+            return Promise.resolve();
+        } catch (err: any) {
+            console.error('Error creating policy:', err);
+            return Promise.reject('Failed to create policy. Please try again.');
+        } finally {
+            set({updating: false});
+        }
+    },
+
     setCurrentPolicy: (policy: Policy | null) => {
         set({currentPolicy: policy});
     },
 
     setEditModalVisible: (visible: boolean) => {
         set({editModalVisible: visible});
+    },
+
+    updateRule: async (policyId: number, ruleId: number, data: Partial<Rule>) => {
+        set({updatingRule: true});
+        try {
+            if (data.keywords) {
+                data.keywords = [...new Set(data.keywords)];
+            }
+
+            await apiClient.patch(`/rules/${ruleId}`, data);
+
+            const { policies } = get();
+            set({
+                policies: policies.map(policy => {
+                    if (policy.id === policyId) {
+                        return {
+                            ...policy,
+                            rules: policy.rules.map(rule => 
+                                rule.id === ruleId ? { ...rule, ...data } : rule
+                            )
+                        };
+                    }
+                    return policy;
+                })
+            });
+
+            return Promise.resolve();
+        } catch (err: any) {
+            console.error('Error updating rule:', err);
+            return Promise.reject('Failed to update rule. Please try again.');
+        } finally {
+            set({updatingRule: false});
+        }
+    },
+
+    createRule: async (policyId: number, data: Partial<Rule>) => {
+        set({updatingRule: true});
+        try {
+            if (data.keywords) {
+                data.keywords = [...new Set(data.keywords)];
+            }
+
+            const ruleData = {
+                ...data,
+                policy_id: policyId
+            };
+
+            const response = await apiClient.post('/rules/', ruleData);
+            const newRule = response.data;
+
+            const { policies } = get();
+            set({
+                policies: policies.map(policy => {
+                    if (policy.id === policyId) {
+                        return {
+                            ...policy,
+                            rules: [...policy.rules, newRule]
+                        };
+                    }
+                    return policy;
+                })
+            });
+
+            return Promise.resolve();
+        } catch (err: any) {
+            console.error('Error creating rule:', err);
+            return Promise.reject('Failed to create rule. Please try again.');
+        } finally {
+            set({updatingRule: false});
+        }
+    },
+
+    setCurrentRule: (rule: Rule | null) => {
+        set({currentRule: rule});
+    },
+
+    setRuleEditModalVisible: (visible: boolean) => {
+        set({ruleEditModalVisible: visible});
     }
 }));

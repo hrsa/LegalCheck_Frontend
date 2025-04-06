@@ -1,8 +1,9 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, TouchableOpacity, ActivityIndicator, Modal, TextInput} from 'react-native';
+import {View, Text, TouchableOpacity, Modal} from 'react-native';
+import TextInput from '../TextInput';
 import Badge from '../Badge';
 import Button from '../Button'
-import {Policy} from '../../stores/policyStore';
+import {Policy, PolicyType, policyTypes, severities} from '../../types/policy.types';
 
 interface EditPolicyModalProps {
     visible: boolean;
@@ -21,13 +22,15 @@ export default function EditPolicyModal({
                                         }: EditPolicyModalProps) {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
-    const [isActive, setIsActive] = useState(false);
+    const [isActive, setIsActive] = useState(true);
+    const [policyType, setPolicyType] = useState<PolicyType>('company');
 
     useEffect(() => {
         if (policy) {
             setName(policy.name);
             setDescription(policy.description);
             setIsActive(policy.is_active);
+            setPolicyType(policy.policy_type);
         }
     }, [policy]);
 
@@ -38,7 +41,7 @@ export default function EditPolicyModal({
             await onSave(policy.id, {
                 id: policy.id,
                 name,
-                policy_type: policy.policy_type,
+                policy_type: policyType,
                 description,
                 is_active: isActive
             });
@@ -56,36 +59,64 @@ export default function EditPolicyModal({
         >
             <View className="flex-1 justify-center items-center bg-black bg-opacity-50">
                 <View className="bg-white p-5 rounded-lg w-4/5">
-                    <Text className="text-xl font-bold mb-4">Edit Policy</Text>
+                    <Text
+                        className="text-xl font-bold mb-4">{policy && policy.id === 0 ? 'Add Policy' : 'Edit Policy'}</Text>
 
-                    <Text className="font-medium mb-1">Name</Text>
+                    <Text className="font-semibold mb-1 mt-2">Name</Text>
                     <TextInput
                         value={name}
                         onChangeText={setName}
-                        className="border border-gray-300 rounded p-2 mb-3"
+                        className="h-auto p-2 mx-1 my-2"
                     />
 
-                    <Text className="font-medium mb-1">Description</Text>
+                    <Text className="font-semibold mb-1 mt-2">Description</Text>
                     <TextInput
                         value={description}
                         onChangeText={setDescription}
                         multiline
                         numberOfLines={4}
-                        className="border border-gray-300 rounded p-2 mb-3"
+                        className="h-auto p-2 mx-1 my-2"
                         textAlignVertical="top"
                     />
 
-                    <View className="flex-row items-center mb-4">
-                        <TouchableOpacity
-                            onPress={() => setIsActive(!isActive)}
-                            className="mr-2"
-                        >
-                            <Badge
-                                text={isActive ? 'Active' : 'Inactive'}
-                                variant={isActive ? 'green' : 'red'}
-                            />
-                        </TouchableOpacity>
-                    </View>
+                    {policy && policy.id !== 0 && (
+                        <View className="flex-row items-center mb-4">
+                            <TouchableOpacity
+                                onPress={() => setIsActive(!isActive)}
+                                className="mr-2"
+                            >
+                                <Badge
+                                    text={isActive ? 'Active' : 'Inactive'}
+                                    variant={isActive ? 'green' : 'red'}
+                                />
+                            </TouchableOpacity>
+                        </View>
+                    )}
+
+                    {policy && policy.id === 0 && (
+                        <View className="flex-row flex-wrap mb-3 mx-1">
+                            {policyTypes.map((pt) => (
+                                <TouchableOpacity
+                                    key={pt}
+                                    onPress={() => setPolicyType(pt)}
+                                    className="mr-2 mb-2"
+                                >
+                                    <Badge
+                                        text={pt}
+                                        variant={
+                                            policyType === pt
+                                            ? pt === "standard"
+                                                    ? "amber"
+                                                    : pt === "industry"
+                                                        ? "blue"
+                                                        : "green"
+                                            : "gray"
+                                        }
+                                    />
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    )}
 
                     <View className="flex-row justify-center">
                         <Button
