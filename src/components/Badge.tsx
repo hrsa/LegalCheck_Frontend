@@ -1,21 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-
-type BadgeVariant = 
-  | 'green' 
-  | 'red' 
-  | 'orange' 
-  | 'yellow' 
-  | 'blue' 
-  | 'purple' 
-  | 'pink' 
-  | 'indigo' 
-  | 'teal' 
-  | 'cyan' 
-  | 'lime' 
-  | 'amber' 
-  | 'gray' 
-  | 'slate';
+import {BadgeVariant} from "../types/components/Badge.types";
 
 interface BadgeProps {
   text: string;

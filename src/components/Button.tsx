@@ -20,7 +20,6 @@ export default function Button({
                                }: ButtonProps) {
     const baseButtonStyles = 'rounded-md py-2 px-4 font-black flex-row justify-center items-center';
 
-    // Variant styles
     const variantStyles = {
         primary: 'bg-blue-500',
         secondary: 'bg-violet-500',
@@ -29,10 +28,8 @@ export default function Button({
         transparent: 'bg-transparent',
     };
 
-    // Disabled state
     const disabledStyle = (disabled || loading) ? 'opacity-50' : '';
 
-    // Text styles
     let baseTextStyles = 'font-medium text-center';
 
     if (variant === 'transparent') {

@@ -1,0 +1,15 @@
+export type BadgeVariant =
+    | 'green'
+    | 'red'
+    | 'orange'
+    | 'yellow'
+    | 'blue'
+    | 'purple'
+    | 'pink'
+    | 'indigo'
+    | 'teal'
+    | 'cyan'
+    | 'lime'
+    | 'amber'
+    | 'gray'
+    | 'slate';

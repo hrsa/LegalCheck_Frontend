@@ -18,7 +18,7 @@ export default function LoginScreen() {
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
-                className="mb-2"
+                className="mb-2 px-2 py-1"
             />
 
 
@@ -28,7 +28,7 @@ export default function LoginScreen() {
                 secureTextEntry
                 value={password}
                 onChangeText={setPassword}
-                className="mb-4"
+                className="mb-4 px-2 py-1"
             />
 
             {error && <Text style={{color: "red", marginBottom: 10}}>{error}</Text>}
