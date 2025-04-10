@@ -1,5 +1,12 @@
 import React from 'react';
-import {TouchableOpacity, Text, ActivityIndicator, TouchableOpacityProps} from 'react-native';
+import {TouchableOpacity, Text, ActivityIndicator, TouchableOpacityProps, View} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+
+
+type IoniconsName =
+    | "search" | "repeat" | "link" | "at" | "body" | "code" | "map" | "menu" | "time" 
+    | "ellipse" | "filter" | "image" | "stop" | "text" | "alert" | "checkbox" | "radio" 
+    | "timer" | "close" | "home" | "home-outline" | "document-text-outline" | "menu-outline";
 
 interface ButtonProps extends TouchableOpacityProps {
     title: string;
@@ -7,6 +14,8 @@ interface ButtonProps extends TouchableOpacityProps {
     variant?: 'primary' | 'secondary' | 'danger' | "success" | "transparent";
     className?: string;
     textClassName?: string;
+    icon?: IoniconsName;
+    iconSize?: number;
 }
 
 export default function Button({
@@ -16,6 +25,8 @@ export default function Button({
                                    className = '',
                                    textClassName = '',
                                    disabled,
+                                   icon,
+                                   iconSize = 24,
                                    ...props
                                }: ButtonProps) {
     const baseButtonStyles = 'rounded-md py-2 px-4 font-black flex-row justify-center items-center';
@@ -45,7 +56,19 @@ export default function Button({
             {loading ? (
                 <ActivityIndicator color="white"/>
             ) : (
-                <Text className={`${baseTextStyles} ${textClassName}`}>{title}</Text>
+                <>
+                    {icon && (
+                        <Ionicons 
+                            name={icon} 
+                            size={iconSize} 
+                            color={variant === 'transparent' ? 'black' : 'white'} 
+                            style={{ marginRight: title ? 8 : 0 }}
+                        />
+                    )}
+                    {title && (
+                        <Text className={`${baseTextStyles} ${textClassName}`}>{title}</Text>
+                    )}
+                </>
             )}
         </TouchableOpacity>
     );
