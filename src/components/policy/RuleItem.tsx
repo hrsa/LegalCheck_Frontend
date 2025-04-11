@@ -8,9 +8,11 @@ import {BadgeVariant} from "../../types/components/Badge.types";
 interface RuleItemProps {
   rule: Rule;
   onEdit: (rule: Rule) => void;
+  editable?: boolean;
+  colorType?: string;
 }
 
-export default function RuleItem({ rule, onEdit }: RuleItemProps) {
+export default function RuleItem({ rule, onEdit, editable = true, colorType = 'gray' }: RuleItemProps) {
   const getSeverityColor = (severity: string): BadgeVariant => {
     switch (severity.toLowerCase()) {
       case 'high':
@@ -37,12 +39,25 @@ export default function RuleItem({ rule, onEdit }: RuleItemProps) {
     }
   };
 
+  const getColorType = (colorType: string): string => {
+    switch (colorType.toLowerCase()) {
+      case 'blue':
+        return 'bg-blue-100 border-blue-500';
+      case 'green':
+        return 'bg-green-100 border-green-500';
+      case 'red':
+        return 'bg-red-100 border-red-500';
+      default:
+        return 'bg-gray-50 border-gray-200';
+    }
+  }
+
   return (
-    <View className="bg-gray-50 p-3 rounded-md mb-2 border border-gray-200">
+    <View className={`p-3 rounded-md mb-2 border ${getColorType(colorType)}`}>
       <View className="flex-row justify-between items-start">
         <View className="flex-1">
-          <Text className="text-gray-700 mb-2">{rule.description}</Text>
-          
+          <Text className="text-gray-800 font-semibold mb-4">{rule.description}</Text>
+
           {rule.keywords && rule.keywords.length > 0 && (
             <View className="mb-2">
               <Text className="text-xs text-gray-500 mb-1">Keywords:</Text>
@@ -59,16 +74,17 @@ export default function RuleItem({ rule, onEdit }: RuleItemProps) {
             </View>
           )}
         </View>
-        
-        <Button
-          title="Edit"
-          onPress={() => onEdit(rule)}
-          className="ml-2"
-        />
+
+        {editable && (
+          <Button
+            title="Edit"
+            onPress={() => onEdit(rule)}
+            className="ml-2"
+          />
+        )}
       </View>
-      
-      {/* Badges for rule type and severity */}
-      <View className="flex-row mt-2">
+
+      <View className="flex-row mt-1">
         <Badge 
           text={rule.rule_type}
           variant={getRuleTypeColor(rule.rule_type)}
