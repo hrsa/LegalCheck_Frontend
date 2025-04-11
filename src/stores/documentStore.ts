@@ -72,10 +72,13 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
         }
     },
 
-    analyzeDocument: async (documentId: number) => {
-      set({updating: true});
+    analyzeDocument: async (documentId: number, checklistId: number | null = null) => {
+      set({loading: true, updating: true});
+
+      const data = checklistId ? {checklist_id: checklistId} : {};
+
       try {
-        const response = await apiClient.post(`/documents/${documentId}/analyze`);
+        const response = await apiClient.post(`/documents/${documentId}/analyze`, data);
         if (response.status === 200) {
         //     update the document from documents is_processed property
             const {documents} = get();
@@ -95,7 +98,7 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
         console.error('Error analyzing document:', err);
         return Promise.reject('Failed to analyze document. Please try again.');
       } finally {
-        set({updating: false});
+        set({loading: false, updating: false});
       }
     },
 

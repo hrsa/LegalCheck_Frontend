@@ -16,7 +16,7 @@ export interface DocumentState {
 
     fetchDocuments: () => Promise<void>;
     createDocument: (data: Partial<Document>) => Promise<void>;
-    analyzeDocument: (id: number) => Promise<void>;
+    analyzeDocument: (documentId: number, checklistId: number | null) => Promise<void>;
     uploadDocument: (file: any) => Promise<void>;
     setCurrentDocument: (document: Document | null) => void;
     setEditModalVisible: (visible: boolean) => void;

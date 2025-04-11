@@ -1,6 +1,6 @@
 import {create} from "zustand";
 import apiClient from "../services/api/apiClient";
-import {Document, DocumentState} from "../types/document.types";
+import {Document} from "../types/document.types";
 import {AnalysisResult, AnalysisResultState} from "../types/analysis_result.types";
 
 export const useAnalysisResultStore = create<AnalysisResultState>((set, get) => ({
@@ -26,6 +26,24 @@ export const useAnalysisResultStore = create<AnalysisResultState>((set, get) => 
         set({currentDocument: document});
     },
 
-    analyzeDocument: async (id: number) => {
+    analyzeDocument: async (documentId: number, checklistId: number | null) => {
+        set({loading: true, error: null});
+        const data = checklistId ? {checklist_id: checklistId} : {};
+        try {
+            const response = await apiClient.post('/documents/' + documentId + '/analyze', data);
+            const newAnalysisResult: AnalysisResult = response.data;
+            console.log(newAnalysisResult);
+            const {analysisResults} = get();
+            if (analysisResults === null) {
+                set({ analysisResults: [newAnalysisResult] });
+            } else {
+                set({ analysisResults: [...analysisResults, newAnalysisResult] });
+            }
+        } catch (err: any) {
+            console.error('Error fetching analysis result:', err);
+            set({error: 'Failed to load analysis result. Please try again later.'});
+        } finally {
+            set({loading: false});
+        }
     }
 }));

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { AnalysisResult } from '../../types/analysis_result.types';
 import { Ionicons } from '@expo/vector-icons';
+import Badge from "../Badge";
 
 interface AnalysisResultItemProps {
     item: AnalysisResult;
@@ -46,6 +47,9 @@ export default function AnalysisResultItem({ item }: AnalysisResultItemProps) {
         <View className="bg-white p-4 rounded-lg shadow-sm mb-4">
             <View className="mb-4">
                 <Text className="text-xl font-bold">{item.title || 'Untitled Analysis'}</Text>
+                {item.checklist_name && item.checklist_id && (
+                    <Badge text={item.checklist_name} variant="orange" className="place-self-start my-2 max-w-fit"/>
+                )}
                 {item.company_name && (
                     <Text className="text-gray-600 mt-1">Company: {item.company_name}</Text>
                 )}

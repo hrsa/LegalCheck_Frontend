@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text } from 'react-native';
 import Badge from '../Badge';
 import Button from '../Button';
 import { Rule } from '../../types/policy.types';

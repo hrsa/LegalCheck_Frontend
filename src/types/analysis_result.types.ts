@@ -34,6 +34,8 @@ interface PaymentTerm {
 export interface AnalysisResult {
     id: number;
     document_id: number;
+    checklist_id: number | null;
+    checklist_name: string | null;
     title: string | null;
     company_name: string | null;
     conflicts: Conflict[];
@@ -52,6 +54,6 @@ export interface AnalysisResultState {
     currentDocument: Document | null;
 
     fetchAnalysisResults: (documentId: number) => Promise<void>;
-    analyzeDocument: (id: number) => Promise<void>;
+    analyzeDocument: (documentId: number, checklistId: number | null) => Promise<void>;
     setCurrentDocument: (document: Document | null) => void;
 }
