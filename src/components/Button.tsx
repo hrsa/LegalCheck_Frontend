@@ -1,12 +1,9 @@
 import React from 'react';
 import {TouchableOpacity, Text, ActivityIndicator, TouchableOpacityProps, View} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import {IoniconsName} from "../types/navigation.types";
 
 
-type IoniconsName =
-    | "search" | "repeat" | "link" | "at" | "body" | "code" | "map" | "menu" | "time" 
-    | "ellipse" | "filter" | "image" | "stop" | "text" | "alert" | "checkbox" | "radio" 
-    | "timer" | "close" | "home" | "home-outline" | "document-text-outline" | "menu-outline";
 
 interface ButtonProps extends TouchableOpacityProps {
     title: string;

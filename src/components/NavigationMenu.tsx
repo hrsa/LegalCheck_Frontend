@@ -3,6 +3,7 @@ import { View, TouchableOpacity, Animated } from 'react-native';
 import { Link, usePathname } from 'expo-router';
 import Button from './Button';
 import { Ionicons } from '@expo/vector-icons';
+import { NavigationItem } from '../types/navigation.types';
 
 export default function NavigationMenu() {
     const pathname = usePathname();
@@ -22,9 +23,11 @@ export default function NavigationMenu() {
         return pathname === path;
     };
 
-    const navItems = [
-        { title: 'Home', path: '/home' },
-        { title: 'My Policies', path: '/policies' },
+    const navItems: NavigationItem[] = [
+        { title: 'Home', path: '/home', icon: 'home-outline' },
+        { title: 'My Policies', path: '/policies', icon: 'list-outline' },
+        { title: 'My Documents', path: '/documents', icon: 'document-text-outline' },
+        { title: 'My Checklists', path: '/checklists', icon: 'checkbox' },
     ];
 
     return (
@@ -50,7 +53,7 @@ export default function NavigationMenu() {
                         variant={isActive(item.path) ? 'primary' : 'transparent'}
                         className={`my-2 mx-auto ${!isMenuVisible ? 'w-8 h-8 p-0 justify-center' : ''}`}
                         {...(!isMenuVisible && {
-                            icon: item.title === 'Home' ? 'home-outline' : 'document-text-outline',
+                            icon: item.icon,
                             iconSize: 20
                         })}
                     />
