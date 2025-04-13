@@ -1,6 +1,7 @@
 import {create} from "zustand";
-import apiClient from "../services/api/apiClient";
 import {Policy, PolicyState, Rule} from "../types/policy.types";
+import * as PoliciesAPI from "../services/api/policies";
+import * as RulesAPI from "../services/api/rules";
 
 export const usePolicyStore = create<PolicyState>((set, get) => ({
     policies: [],
@@ -16,8 +17,8 @@ export const usePolicyStore = create<PolicyState>((set, get) => ({
     fetchPolicies: async () => {
         set({loading: true, error: null});
         try {
-            const response = await apiClient.get('/policies/');
-            set({policies: response.data});
+            const policies = await PoliciesAPI.fetchPolicies();
+            set({policies});
         } catch (err: any) {
             console.error('Error fetching policies:', err);
             set({error: 'Failed to load policies. Please try again later.'});
@@ -30,7 +31,7 @@ export const usePolicyStore = create<PolicyState>((set, get) => ({
         set({updating: true});
         try {
             console.log(data);
-            await apiClient.patch(`/policies/${id}`, data);
+            await PoliciesAPI.updatePolicy(id, data);
 
             const { policies } = get();
             set({
@@ -51,8 +52,7 @@ export const usePolicyStore = create<PolicyState>((set, get) => ({
     createPolicy: async (data: Partial<Policy>) => {
         set({updating: true});
         try {
-            const response = await apiClient.post('/policies/', data);
-            const newPolicy = response.data;
+            const newPolicy = await PoliciesAPI.createPolicy(data);
 
             const { policies } = get();
             set({
@@ -83,7 +83,7 @@ export const usePolicyStore = create<PolicyState>((set, get) => ({
                 data.keywords = [...new Set(data.keywords)];
             }
 
-            await apiClient.patch(`/rules/${ruleId}`, data);
+            await RulesAPI.updateRule(ruleId, data);
 
             const { policies } = get();
             set({
@@ -116,13 +116,7 @@ export const usePolicyStore = create<PolicyState>((set, get) => ({
                 data.keywords = [...new Set(data.keywords)];
             }
 
-            const ruleData = {
-                ...data,
-                policy_id: policyId
-            };
-
-            const response = await apiClient.post('/rules/', ruleData);
-            const newRule = response.data;
+            const newRule = await RulesAPI.createRule(policyId, data);
 
             const { policies } = get();
             set({
