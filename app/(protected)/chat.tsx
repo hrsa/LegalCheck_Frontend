@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, FlatList, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useChatStore } from '../../src/stores/chatStore';
 import { useDocumentStore } from '../../src/stores/documentStore';
@@ -22,11 +22,14 @@ export default function ChatScreen() {
         currentConversationId,
         initializeChat, 
         sendMessage, 
-        disconnectWebSocket 
+        disconnectWebSocket,
+        updateConversation
     } = useChatStore();
     const { currentDocument, fetchDocument } = useDocumentStore();
 
     const [messageText, setMessageText] = useState('');
+    const [isEditingTitle, setIsEditingTitle] = useState(false);
+    const [titleText, setTitleText] = useState('');
     const flatListRef = useRef<FlatList>(null);
 
     // Single useEffect for initialization and cleanup
@@ -36,10 +39,9 @@ export default function ChatScreen() {
         // Initialize chat and document
         const initialize = async () => {
             try {
-                await Promise.all([
-                    fetchDocument(documentId),
-                    initializeChat(documentId)
-                ]);
+                // Fetch document and messages in sequence to ensure we have the document first
+                await fetchDocument(documentId);
+                await initializeChat(documentId);
             } catch (error) {
                 console.error('Failed to initialize chat:', error);
             }
@@ -65,6 +67,15 @@ export default function ChatScreen() {
         };
     }, [documentId, fetchDocument, initializeChat, disconnectWebSocket]);
 
+    // Update titleText when conversation changes
+    useEffect(() => {
+        if (conversation?.title) {
+            setTitleText(conversation.title);
+        } else if (currentDocument) {
+            setTitleText(`Chat about: ${currentDocument.filename}`);
+        }
+    }, [conversation, currentDocument]);
+
     const handleSendMessage = async () => {
         if (!messageText.trim() || !documentId || !wsConnected) return;
 
@@ -73,6 +84,17 @@ export default function ChatScreen() {
             setMessageText('');
         } catch (error) {
             console.error('Failed to send message:', error);
+        }
+    };
+
+    const handleUpdateTitle = async () => {
+        if (!titleText.trim() || !conversation) return;
+
+        try {
+            await updateConversation(titleText);
+            setIsEditingTitle(false);
+        } catch (error) {
+            console.error('Failed to update title:', error);
         }
     };
 
@@ -110,12 +132,50 @@ export default function ChatScreen() {
             <View className="flex-1 p-4">
                 {currentDocument && (
                     <View className="mb-4">
-                        <Text className="text-xl font-bold">Chat about: {currentDocument.filename}</Text>
+                        {isEditingTitle ? (
+                            <View className="flex-row items-center">
+                                <TextInput
+                                    className="flex-1 p-2 bg-white border border-gray-300 rounded-lg mr-2"
+                                    value={titleText}
+                                    onChangeText={setTitleText}
+                                    autoFocus
+                                />
+                                <Button
+                                    title="Update"
+                                    onPress={handleUpdateTitle}
+                                    disabled={!titleText.trim()}
+                                />
+                                <TouchableOpacity 
+                                    className="ml-2 p-2" 
+                                    onPress={() => {
+                                        setIsEditingTitle(false);
+                                        // Reset to original title if canceled
+                                        if (conversation?.title) {
+                                            setTitleText(conversation.title);
+                                        } else if (currentDocument) {
+                                            setTitleText(`Chat about: ${currentDocument.filename}`);
+                                        }
+                                    }}
+                                >
+                                    <Text className="text-red-500">Cancel</Text>
+                                </TouchableOpacity>
+                            </View>
+                        ) : (
+                            <TouchableOpacity onPress={() => setIsEditingTitle(true)}>
+                                <Text className="text-xl font-bold">
+                                    {conversation?.title || `Chat about: ${currentDocument.filename}`}
+                                </Text>
+                                <Text className="text-xs text-gray-500">
+                                    (Click to edit title)
+                                </Text>
+                            </TouchableOpacity>
+                        )}
+
                         {wsConnected && currentConversationId && (
-                            <Text className="text-xs text-green-500">Connected to chat (ID: {currentConversationId})</Text>
+                            <Text className="text-xs text-green-500 mt-1">Connected to chat (ID: {currentConversationId})</Text>
                         )}
                         {wsConnecting && (
-                            <View className="flex-row items-center">
+                            <View className="flex-row items-center mt-1">
                                 <ActivityIndicator size="small" color="#F59E0B" />
                                 <Text className="text-xs text-yellow-500 ml-1">
                                     Connecting to chat...
@@ -123,11 +183,11 @@ export default function ChatScreen() {
                             </View>
                         )}
                         {!wsConnected && !wsConnecting && (
-                            <Text className="text-xs text-red-500">
+                            <Text className="text-xs text-red-500 mt-1">
                                 Not connected to chat. 
                                 <Text 
                                     className="text-blue-500 underline ml-1"
-                                    onPress={() => initializeChat(documentId)}
+                                    onPress={() => initializeChat(documentId, currentDocument.filename)}
                                 >
                                     Reconnect
                                 </Text>

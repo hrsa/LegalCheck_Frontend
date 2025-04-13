@@ -8,6 +8,11 @@ export const fetchMessages = async (documentId: number) => {
   return response.data as Conversation;
 };
 
+export const updateConversation = async (conversation: Conversation) => {
+  const response = await apiClient.patch(`/conversations/${conversation.id}`, conversation);
+  return response.data as Conversation;
+}
+
 export const sendMessage = async (documentId: number, content: string) => {
   const formData = new FormData();
   formData.append('message', content);

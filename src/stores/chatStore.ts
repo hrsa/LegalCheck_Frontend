@@ -10,7 +10,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
     error: null,
     sending: false,
 
-    // WebSocket connection state
     wsConnected: false,
     wsConnecting: false,
     currentConversationId: null,
@@ -23,6 +22,31 @@ export const useChatStore = create<ChatState>((set, get) => ({
         } catch (err: any) {
             console.error('Error fetching chat messages:', err);
             set({error: 'Failed to load chat messages. Please try again later.'});
+        } finally {
+            set({loading: false});
+        }
+    },
+
+    updateConversation: async (title: string) => {
+        set({loading: true, error: null});
+        try {
+            const {conversation} = get();
+            if (conversation) {
+                const updatedConversation = {
+                    ...conversation,
+                    title: title
+                };
+
+                set({
+                    conversation: updatedConversation
+                });
+                console.log('Updated conversation:', updatedConversation);
+
+                await ChatAPI.updateConversation(updatedConversation);
+            }
+        } catch (err: any) {
+            console.error('Error updating conversation:', err);
+            set({error: 'Failed to update conversation. Please try again later.'});
         } finally {
             set({loading: false});
         }
@@ -46,7 +70,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
             const {conversation, wsConnected, currentConversationId} = get();
 
             if (!conversation) {
-                throw new Error('No active conversation');
+                console.error('No active conversation');
+                set({error: 'No active conversation. Please refresh the page.'});
+                return Promise.reject('No active conversation');
             }
 
             const tempUserMessage: ChatMessage = {
@@ -60,7 +86,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
             if (wsConnected && currentConversationId === conversation.id) {
                 console.log('Sending message via WebSocket');
 
-                // Create the WebSocket message
                 const wsMessage = {
                     type: WebSocketEventType.NEW_MESSAGE,
                     conversation_id: conversation.id,
@@ -68,11 +93,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
                     timestamp: new Date().toISOString()
                 };
 
-                // Send the message via WebSocket
                 websocketService.send(wsMessage);
-
-                // The server will send back the official message via WebSocket,
-                // which will be handled by the 'new_message' event handler
 
                 return Promise.resolve();
             } else {
@@ -83,10 +104,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
                 // Fall back to REST API
                 const newMessage = await ChatAPI.sendMessage(documentId, content);
 
-                // Remove the temporary message and add the official one
                 if (conversation) {
-                    // We don't need to add the message here as it will come back via WebSocket
-                    // if the connection is established later
                     get().addMessage(newMessage);
                 }
 
@@ -127,7 +145,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
             return false;
         }
 
-        set({ wsConnecting: true });
+        set({wsConnecting: true});
 
         try {
             // Register message handlers before connecting
@@ -161,15 +179,15 @@ export const useChatStore = create<ChatState>((set, get) => ({
             const connected = await websocketService.connect(conversationId);
 
             if (!connected) {
-                set({ 
+                set({
                     error: 'Failed to connect to WebSocket. Please try again later.',
-                    wsConnecting: false 
+                    wsConnecting: false
                 });
                 return false;
             }
 
-            set({ 
-                wsConnected: true, 
+            set({
+                wsConnected: true,
                 wsConnecting: false,
                 currentConversationId: conversationId
             });
@@ -177,7 +195,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
             return true;
         } catch (error) {
             console.error('Error in connectWebSocket:', error);
-            set({ 
+            set({
                 error: 'Failed to connect to WebSocket. Please try again later.',
                 wsConnecting: false,
                 wsConnected: false,
@@ -195,8 +213,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
         try {
             await websocketService.disconnect();
-            set({ 
-                wsConnected: false, 
+            set({
+                wsConnected: false,
                 wsConnecting: false,
                 currentConversationId: null
             });
@@ -205,24 +223,21 @@ export const useChatStore = create<ChatState>((set, get) => ({
         }
     },
 
-    // New method to initialize chat (combines fetching and connecting)
     initializeChat: async (documentId: number) => {
-        set({ loading: true, error: null });
+        set({loading: true, error: null});
 
         try {
-            // Fetch messages first
             const conversation = await ChatAPI.fetchMessages(documentId);
-            set({ conversation });
+            set({conversation});
 
-            // Then connect to WebSocket if we have a conversation
             if (conversation?.id) {
                 await get().connectWebSocket(conversation.id);
             }
         } catch (err: any) {
             console.error('Error initializing chat:', err);
-            set({ error: 'Failed to initialize chat. Please try again later.' });
+            set({error: 'Failed to initialize chat. Please try again later.'});
         } finally {
-            set({ loading: false });
+            set({loading: false});
         }
     }
 }));

@@ -27,7 +27,7 @@ export interface ChatState {
     wsConnected: boolean;
     wsConnecting: boolean;
     currentConversationId: number | null;
-
+    updateConversation: (title: string) => Promise<void>;
     fetchMessages: (documentId: number) => Promise<void>;
     addMessage: (chatMessage: ChatMessage) => void;
     sendMessage: (documentId: number, content: string) => Promise<void>;
@@ -35,7 +35,5 @@ export interface ChatState {
     pingWebSocket: () => void;
     disconnectWebSocket: () => Promise<void>;
 
-    initializeChat: (documentId: number) => Promise<void>;
+    initializeChat: (documentId: number, documentFilename?: string) => Promise<void>;
 }
-
-
