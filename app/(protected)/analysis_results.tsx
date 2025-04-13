@@ -23,7 +23,6 @@ export default function AnalysisResultsScreen() {
     } = useAnalysisResultStore();
     const {checklists, loading: checklistsLoading, error: checklistsError, fetchChecklists} = useChecklistStore();
 
-    // State for dropdown
     const [selectedChecklist, setSelectedChecklist] = useState<Checklist | null>(null);
     const [dropdownVisible, setDropdownVisible] = useState(false);
 
@@ -37,7 +36,6 @@ export default function AnalysisResultsScreen() {
         }
     }, [fetchAnalysisResults, currentDocument]);
 
-    // Handle analyze button click
     const handleAnalyze = () => {
         if (currentDocument && selectedChecklist) {
             analyzeDocument(currentDocument.id, selectedChecklist.id);
