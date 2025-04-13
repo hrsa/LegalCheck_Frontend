@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import apiClient from "../services/api/apiClient";
 import { Checklist, ChecklistState } from "../types/checklist.types";
+import * as ChecklistsAPI from "../services/api/checklists";
 
 export const useChecklistStore = create<ChecklistState>((set, get) => ({
     checklists: [],
@@ -13,8 +13,8 @@ export const useChecklistStore = create<ChecklistState>((set, get) => ({
     fetchChecklists: async () => {
         set({ loading: true, error: null });
         try {
-            const response = await apiClient.get('/checklists/');
-            set({ checklists: response.data });
+            const checklists = await ChecklistsAPI.fetchChecklists();
+            set({ checklists });
         } catch (err: any) {
             console.error('Error fetching checklists:', err);
             set({ error: 'Failed to load checklists. Please try again later.' });
@@ -26,8 +26,7 @@ export const useChecklistStore = create<ChecklistState>((set, get) => ({
     createChecklist: async (data: Partial<Checklist>) => {
         set({ updating: true });
         try {
-            const response = await apiClient.post('/checklists/', data);
-            const newChecklist = response.data;
+            const newChecklist = await ChecklistsAPI.createChecklist(data);
 
             const { checklists } = get();
             set({
@@ -47,7 +46,7 @@ export const useChecklistStore = create<ChecklistState>((set, get) => ({
     updateChecklist: async (id: number, data: Partial<Checklist>) => {
         set({ updating: true });
         try {
-            await apiClient.patch(`/checklists/${id}`, data);
+            await ChecklistsAPI.updateChecklist(id, data);
 
             const { checklists } = get();
             set({
@@ -68,7 +67,7 @@ export const useChecklistStore = create<ChecklistState>((set, get) => ({
     deleteChecklist: async (id: number) => {
         set({ updating: true });
         try {
-            await apiClient.delete(`/checklists/${id}`);
+            await ChecklistsAPI.deleteChecklist(id);
             await get().fetchChecklists();
             return Promise.resolve();
         } catch (err: any) {
