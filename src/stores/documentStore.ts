@@ -1,6 +1,7 @@
 import {create} from "zustand";
-import apiClient from "../services/api/apiClient";
 import {Document, DocumentState} from "../types/document.types";
+import * as DocumentsAPI from "../services/api/documents";
+import * as AnalysisResultsAPI from "../services/api/analysisResults";
 
 export const useDocumentStore = create<DocumentState>((set, get) => ({
     documents: [],
@@ -13,8 +14,8 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
     fetchDocuments: async () => {
         set({loading: true, error: null});
         try {
-            const response = await apiClient.get('/documents/');
-            set({documents: response.data});
+            const documents = await DocumentsAPI.fetchDocuments();
+            set({documents});
         } catch (err: any) {
             console.error('Error fetching documents:', err);
             set({error: 'Failed to load documents. Please try again later.'});
@@ -24,39 +25,24 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
     },
 
 
-    createDocument: async (data: Partial<Document>) => {
-        set({updating: true});
+    fetchDocument: async (documentId: number) => {
+        set({loading: true, error: null});
         try {
-            const response = await apiClient.post('/documents/', data);
-            const newDocument = response.data;
-
-            const {documents} = get();
-            set({
-                documents: [...documents, newDocument]
-            });
-
-            return Promise.resolve();
+            const document = await DocumentsAPI.fetchDocument(documentId);
+            set({currentDocument: document});
         } catch (err: any) {
-            console.error('Error creating document:', err);
-            return Promise.reject('Failed to create document. Please try again.');
+            console.error('Error fetching document ' + documentId, err);
+            set({error: 'Failed to find the document ' + documentId + '. Please try again later.'});
         } finally {
-            set({updating: false});
+            set({loading: false});
         }
     },
+
 
     uploadDocument: async (file: any) => {
         set({updating: true});
         try {
-            const formData = new FormData();
-            formData.append('file', file);
-
-            const response = await apiClient.post('/documents/', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-
-            const newDocument = response.data;
+            const newDocument = await DocumentsAPI.uploadDocument(file);
 
             const {documents} = get();
             set({
@@ -73,33 +59,30 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
     },
 
     analyzeDocument: async (documentId: number, checklistId: number | null = null) => {
-      set({loading: true, updating: true});
+        set({loading: true, updating: true});
 
-      const data = checklistId ? {checklist_id: checklistId} : {};
-
-      try {
-        const response = await apiClient.post(`/documents/${documentId}/analyze`, data);
-        if (response.status === 200) {
-        //     update the document from documents is_processed property
-            const {documents} = get();
-            set({
-                documents: documents.map(document => {
-                    if (document.id === documentId) {
-                        return {
-                            ...document,
-                            is_processed: true
+        try {
+            const result = await AnalysisResultsAPI.analyzeDocument(documentId, checklistId);
+            if (result) {
+                const {documents} = get();
+                set({
+                    documents: documents.map(document => {
+                        if (document.id === documentId) {
+                            return {
+                                ...document,
+                                is_processed: true
+                            }
                         }
-                    }
-                    return document;
-                })
-            });
+                        return document;
+                    })
+                });
+            }
+        } catch (err: any) {
+            console.error('Error analyzing document:', err);
+            return Promise.reject('Failed to analyze document. Please try again.');
+        } finally {
+            set({loading: false, updating: false});
         }
-      } catch (err: any) {
-        console.error('Error analyzing document:', err);
-        return Promise.reject('Failed to analyze document. Please try again.');
-      } finally {
-        set({loading: false, updating: false});
-      }
     },
 
     setCurrentDocument: (document: Document | null) => {

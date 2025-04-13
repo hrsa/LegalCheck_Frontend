@@ -32,12 +32,22 @@ export default function DocumentItem({item, analyze}: DocumentItemProps) {
                     <Text className="text-lg font-bold">{item.filename}</Text>
                     <Text className="text-gray-600 mt-1">{item.filename}</Text>
                 </View>
-                {!item.is_processed && (
-                    <Button
-                        title="Analyze"
-                        onPress={() => analyze(item.id)}
-                    />
-                )}
+                <View className="flex-row">
+                    {item.is_processed ? (
+                        <Button
+                            title="Chat"
+                            variant="secondary"
+                            onPress={() => router.push(`/chat?document_id=${item.id}`)}
+                            className="mr-2"
+                        />
+                    ) : (
+                        <Button
+                            title="Analyze"
+                            onPress={() => analyze(item.id)}
+                        />
+                    )}
+
+                </View>
             </View>
             <View className="flex-row mt-3">
                 <Badge

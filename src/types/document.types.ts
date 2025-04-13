@@ -15,7 +15,7 @@ export interface DocumentState {
     updating: boolean;
 
     fetchDocuments: () => Promise<void>;
-    createDocument: (data: Partial<Document>) => Promise<void>;
+    fetchDocument: (documentId: number) => Promise<void>;
     analyzeDocument: (documentId: number, checklistId: number | null) => Promise<void>;
     uploadDocument: (file: any) => Promise<void>;
     setCurrentDocument: (document: Document | null) => void;

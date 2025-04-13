@@ -22,7 +22,6 @@ export default function DocumentsScreen() {
         analyzeDocument,
         fetchDocuments,
         setCurrentDocument,
-        createDocument,
         uploadDocument
     } = useDocumentStore();
 
@@ -115,7 +114,7 @@ export default function DocumentsScreen() {
                     renderItem={({item}) => (
                         <DocumentItem
                             item={item}
-                            analyze={analyzeDocument}
+                            analyze={() => analyzeDocument(item.id, null)}
                         />
                     )}
                     keyExtractor={(item) => item.id.toString()}
@@ -125,14 +124,6 @@ export default function DocumentsScreen() {
                     }
                 />
             )}
-
-            {/*<EditPolicyModal*/}
-            {/*    visible={editModalVisible}*/}
-            {/*    policy={currentDocument}*/}
-            {/*    onClose={() => setEditModalVisible(false)}*/}
-            {/*    onSave={handleSaveDocument}*/}
-            {/*    updating={updating}*/}
-            {/*/>*/}
         </View>
     );
 }
