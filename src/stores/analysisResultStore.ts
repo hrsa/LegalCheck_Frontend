@@ -1,6 +1,6 @@
 import {create} from "zustand";
 import {Document} from "../types/document.types";
-import {AnalysisResult, AnalysisResultState} from "../types/analysis_result.types";
+import {AnalysisResultState} from "../types/analysis_result.types";
 import * as AnalysisResultsAPI from "../services/api/analysisResults";
 
 export const useAnalysisResultStore = create<AnalysisResultState>((set, get) => ({

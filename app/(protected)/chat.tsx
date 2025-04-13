@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useChatStore } from '../../src/stores/chatStore';
 import { useDocumentStore } from '../../src/stores/documentStore';
@@ -12,43 +12,61 @@ export default function ChatScreen() {
     const { document_id } = useLocalSearchParams<{ document_id: string }>();
     const documentId = parseInt(document_id || '0', 10);
 
-    const { conversation, loading, error, sending, fetchMessages, sendMessage } = useChatStore();
+    const { 
+        conversation, 
+        loading, 
+        error, 
+        sending, 
+        wsConnected,
+        wsConnecting,
+        currentConversationId,
+        initializeChat, 
+        sendMessage, 
+        disconnectWebSocket 
+    } = useChatStore();
     const { currentDocument, fetchDocument } = useDocumentStore();
 
     const [messageText, setMessageText] = useState('');
     const flatListRef = useRef<FlatList>(null);
 
-    // Fetch documents if not already loaded
+    // Single useEffect for initialization and cleanup
     useEffect(() => {
-        if (!currentDocument) {
-            fetchDocument(documentId);
-        }
-    }, [currentDocument, fetchDocument]);
+        if (!documentId) return;
 
-    // Fetch messages and connect to WebSocket when component mounts
-    useEffect(() => {
-        if (documentId) {
-            fetchMessages(documentId);
-            // connectWebSocket(documentId);
-        }
+        // Initialize chat and document
+        const initialize = async () => {
+            try {
+                await Promise.all([
+                    fetchDocument(documentId),
+                    initializeChat(documentId)
+                ]);
+            } catch (error) {
+                console.error('Failed to initialize chat:', error);
+            }
+        };
 
-        // Disconnect from WebSocket when component unmounts
-        // return () => {
-        //     disconnectWebSocket();
-        // };
-    }, [documentId, fetchMessages,
-        // connectWebSocket, disconnectWebSocket
-    ]);
+        initialize();
 
-    // Scroll to bottom when new messages arrive
-    useEffect(() => {
-        if (conversation && conversation?.messages?.length > 0 && flatListRef.current) {
-            flatListRef.current.scrollToEnd({ animated: true });
-        }
-    }, [conversation?.messages?.length]);
+        // Cleanup on unmount
+        return () => {
+            console.log('Disconnecting WebSocket from cleanup function');
+            // We need to use a separate function because cleanup functions can't be async
+            const disconnect = async () => {
+                try {
+                    await disconnectWebSocket();
+                    console.log('WebSocket disconnected successfully from cleanup');
+                } catch (error) {
+                    console.error('Error disconnecting WebSocket from cleanup:', error);
+                }
+            };
+
+            // Execute the disconnect function
+            disconnect();
+        };
+    }, [documentId, fetchDocument, initializeChat, disconnectWebSocket]);
 
     const handleSendMessage = async () => {
-        if (!messageText.trim() || !documentId) return;
+        if (!messageText.trim() || !documentId || !wsConnected) return;
 
         try {
             await sendMessage(documentId, messageText);
@@ -93,6 +111,28 @@ export default function ChatScreen() {
                 {currentDocument && (
                     <View className="mb-4">
                         <Text className="text-xl font-bold">Chat about: {currentDocument.filename}</Text>
+                        {wsConnected && currentConversationId && (
+                            <Text className="text-xs text-green-500">Connected to chat (ID: {currentConversationId})</Text>
+                        )}
+                        {wsConnecting && (
+                            <View className="flex-row items-center">
+                                <ActivityIndicator size="small" color="#F59E0B" />
+                                <Text className="text-xs text-yellow-500 ml-1">
+                                    Connecting to chat...
+                                </Text>
+                            </View>
+                        )}
+                        {!wsConnected && !wsConnecting && (
+                            <Text className="text-xs text-red-500">
+                                Not connected to chat. 
+                                <Text 
+                                    className="text-blue-500 underline ml-1"
+                                    onPress={() => initializeChat(documentId)}
+                                >
+                                    Reconnect
+                                </Text>
+                            </Text>
+                        )}
                     </View>
                 )}
 
@@ -101,7 +141,7 @@ export default function ChatScreen() {
                 ) : error ? (
                     <ErrorMessage 
                         message={error}
-                        onRetry={() => fetchMessages(documentId)}
+                        onRetry={() => initializeChat(documentId)}
                     />
                 ) : (
                     <FlatList
@@ -111,6 +151,14 @@ export default function ChatScreen() {
                         keyExtractor={(item) => item.id.toString()}
                         contentContainerStyle={{ paddingBottom: 10 }}
                         className="flex-1"
+                        onContentSizeChange={() => {
+                            if (conversation && conversation?.messages?.length > 0) {
+                                setTimeout(() => {
+                                    flatListRef.current?.scrollToEnd({ animated: true });
+                                }, 100);
+                            }
+                        }}
+
                         ListEmptyComponent={
                             <Text className="text-center text-gray-500 mt-4">
                                 No messages yet. Start the conversation!
@@ -130,7 +178,7 @@ export default function ChatScreen() {
                     <Button
                         title="Send"
                         onPress={handleSendMessage}
-                        disabled={sending || !messageText.trim()}
+                        disabled={sending || !messageText.trim() || !wsConnected}
                         loading={sending}
                     />
                 </View>

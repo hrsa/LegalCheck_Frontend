@@ -13,7 +13,7 @@ interface DocumentItemProps {
 
 export default function DocumentItem({item, analyze}: DocumentItemProps) {
     const [expanded, setExpanded] = useState(false);
-    const { setCurrentDocument } = useAnalysisResultStore();
+    const {setCurrentDocument} = useAnalysisResultStore();
 
     const toggleExpanded = () => {
         setExpanded(!expanded);
@@ -21,12 +21,12 @@ export default function DocumentItem({item, analyze}: DocumentItemProps) {
 
     return (
         <TouchableOpacity className="bg-white p-4 rounded-lg shadow-sm mb-4"
-        onPress={() => {
-            if (item.is_processed) {
-                setCurrentDocument(item);
-                router.push('/analysis_results');
-            }
-        }}>
+                          onPress={() => {
+                              if (item.is_processed) {
+                                  setCurrentDocument(item);
+                                  router.push('/analysis_results');
+                              }
+                          }}>
             <View className="flex-row justify-between items-start">
                 <View className="flex-1">
                     <Text className="text-lg font-bold">{item.filename}</Text>

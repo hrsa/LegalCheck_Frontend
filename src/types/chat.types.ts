@@ -24,9 +24,18 @@ export interface ChatState {
     error: string | null;
     sending: boolean;
 
+    wsConnected: boolean;
+    wsConnecting: boolean;
+    currentConversationId: number | null;
+
     fetchMessages: (documentId: number) => Promise<void>;
     addMessage: (chatMessage: ChatMessage) => void;
     sendMessage: (documentId: number, content: string) => Promise<void>;
-    // connectWebSocket: (documentId: number) => void;
-    // disconnectWebSocket: () => void;
+    connectWebSocket: (conversationId: number) => Promise<boolean>;
+    pingWebSocket: () => void;
+    disconnectWebSocket: () => Promise<void>;
+
+    initializeChat: (documentId: number) => Promise<void>;
 }
+
+

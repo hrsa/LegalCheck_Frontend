@@ -1,6 +1,8 @@
 import {create} from "zustand";
 import {ChatMessage, ChatState, Conversation} from "../types/chat.types";
 import * as ChatAPI from "../services/api/chat";
+import websocketService from "../services/api/websocket";
+import {WebSocketEventType} from "../types/websocket.types";
 
 export const useChatStore = create<ChatState>((set, get) => ({
     conversation: null,
@@ -8,18 +10,19 @@ export const useChatStore = create<ChatState>((set, get) => ({
     error: null,
     sending: false,
 
+    // WebSocket connection state
+    wsConnected: false,
+    wsConnecting: false,
+    currentConversationId: null,
+
     fetchMessages: async (documentId: number) => {
         set({loading: true, error: null});
         try {
             const conversation = await ChatAPI.fetchMessages(documentId);
-            set({conversation: conversation || null});
+            set({conversation: conversation});
         } catch (err: any) {
-            if (err.status === 404) {
-                set({error: null});
-            } else {
-                console.error('Error fetching chat messages:', err);
-                set({error: 'Failed to load chat messages. Please try again later.'});
-            }
+            console.error('Error fetching chat messages:', err);
+            set({error: 'Failed to load chat messages. Please try again later.'});
         } finally {
             set({loading: false});
         }
@@ -40,28 +43,55 @@ export const useChatStore = create<ChatState>((set, get) => ({
     sendMessage: async (documentId: number, content: string) => {
         set({sending: true});
         try {
-            const {conversation} = get();
+            const {conversation, wsConnected, currentConversationId} = get();
 
-            if (conversation) {
-                let userMessage: ChatMessage = {
+            if (!conversation) {
+                throw new Error('No active conversation');
+            }
+
+            const tempUserMessage: ChatMessage = {
+                conversation_id: conversation.id,
+                content: content,
+                author: "User",
+                created_at: new Date().toISOString(),
+                id: Math.floor(Math.random() * 1000) + 1,
+            };
+
+            if (wsConnected && currentConversationId === conversation.id) {
+                console.log('Sending message via WebSocket');
+
+                // Create the WebSocket message
+                const wsMessage = {
+                    type: WebSocketEventType.NEW_MESSAGE,
                     conversation_id: conversation.id,
                     content: content,
-                    author: "User",
-                    created_at: Date().toString(),
-                    id: Math.floor(Math.random() * 1000) + 1,
-                }
-                get().addMessage(userMessage);
-            }
+                    timestamp: new Date().toISOString()
+                };
 
-            const newMessage = await ChatAPI.sendMessage(documentId, content);
+                // Send the message via WebSocket
+                websocketService.send(wsMessage);
 
-            if (conversation) {
-                get().addMessage(newMessage);
+                // The server will send back the official message via WebSocket,
+                // which will be handled by the 'new_message' event handler
+
+                return Promise.resolve();
             } else {
-                console.error('Received message but no conversation exists');
-            }
+                console.log('WebSocket not connected, falling back to REST API');
 
-            return Promise.resolve();
+                get().addMessage(tempUserMessage);
+
+                // Fall back to REST API
+                const newMessage = await ChatAPI.sendMessage(documentId, content);
+
+                // Remove the temporary message and add the official one
+                if (conversation) {
+                    // We don't need to add the message here as it will come back via WebSocket
+                    // if the connection is established later
+                    get().addMessage(newMessage);
+                }
+
+                return Promise.resolve();
+            }
         } catch (err: any) {
             console.error('Error sending chat message:', err);
             set({error: 'Failed to send message. Please try again.'});
@@ -71,62 +101,128 @@ export const useChatStore = create<ChatState>((set, get) => ({
         }
     },
 
-    // connectWebSocket: (documentId: number) => {
-    //     // Create a WebSocket connection
-    //     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    //     const wsHost = window.location.host;
-    //     const wsUrl = `${wsProtocol}//${wsHost}/ws/documents/${documentId}/chat`;
-    //
-    //     const socket = new WebSocket(wsUrl);
-    //
-    //     socket.onopen = () => {
-    //         console.log('WebSocket connection established');
-    //     };
-    //
-    //     socket.onmessage = (event) => {
-    //         try {
-    //             const data = JSON.parse(event.data);
-    //             const {conversation} = get();
-    //
-    //             // Check if the data is a Conversation object or a ChatMessage
-    //             if (data.messages && Array.isArray(data.messages)) {
-    //                 // It's a Conversation object, update our conversation
-    //                 set({conversation: data as Conversation});
-    //             } else if (conversation) {
-    //                 // It's a ChatMessage object, add it to our conversation
-    //                 const newMessage = data as ChatMessage;
-    //                 set({
-    //                     conversation: {
-    //                         ...conversation,
-    //                         messages: [...conversation.messages, newMessage]
-    //                     }
-    //                 });
-    //             } else {
-    //                 console.error('Received message but no conversation exists');
-    //             }
-    //         } catch (err) {
-    //             console.error('Error parsing WebSocket message:', err);
-    //         }
-    //     };
-    //
-    //     socket.onerror = (error) => {
-    //         console.error('WebSocket error:', error);
-    //         set({error: 'WebSocket connection error. Please try again later.'});
-    //     };
-    //
-    //     socket.onclose = () => {
-    //         console.log('WebSocket connection closed');
-    //     };
-    //
-    //     // Store the socket in a global variable so we can close it later
-    //     (window as any).chatSocket = socket;
-    // },
-    //
-    // disconnectWebSocket: () => {
-    //     // Close the WebSocket connection if it exists
-    //     if ((window as any).chatSocket) {
-    //         (window as any).chatSocket.close();
-    //         (window as any).chatSocket = null;
-    //     }
-    // }
+    pingWebSocket: () => {
+        const {wsConnected, currentConversationId} = get();
+
+        if (wsConnected && currentConversationId) {
+            websocketService.send({
+                type: WebSocketEventType.PING,
+                conversation_id: currentConversationId,
+                timestamp: new Date().toISOString()
+            });
+        }
+    },
+
+
+    connectWebSocket: async (conversationId: number) => {
+        // If already connected to this conversation, do nothing
+        if (get().wsConnected && get().currentConversationId === conversationId) {
+            console.log('WebSocket already connected to this conversation');
+            return true;
+        }
+
+        // If connecting, wait
+        if (get().wsConnecting) {
+            console.log('WebSocket connection in progress');
+            return false;
+        }
+
+        set({ wsConnecting: true });
+
+        try {
+            // Register message handlers before connecting
+            websocketService.on(WebSocketEventType.HISTORY, (payload: Conversation) => {
+                set({conversation: payload});
+            });
+
+            websocketService.on(WebSocketEventType.NEW_MESSAGE, (payload: ChatMessage) => {
+                console.log('WebSocket new message processing here:', payload);
+                const {conversation} = get();
+                if (conversation) {
+                    set({
+                        conversation: {
+                            ...conversation,
+                            messages: [...conversation.messages, payload]
+                        }
+                    });
+                }
+            });
+
+            websocketService.on(WebSocketEventType.PONG, (payload: any) => {
+                console.log('WebSocket pong message:', payload);
+            })
+
+            websocketService.on(WebSocketEventType.ERROR, (payload: any) => {
+                console.error('WebSocket error message:', payload);
+                set({error: payload.message || 'WebSocket error occurred'});
+            });
+
+            // Connect to WebSocket
+            const connected = await websocketService.connect(conversationId);
+
+            if (!connected) {
+                set({ 
+                    error: 'Failed to connect to WebSocket. Please try again later.',
+                    wsConnecting: false 
+                });
+                return false;
+            }
+
+            set({ 
+                wsConnected: true, 
+                wsConnecting: false,
+                currentConversationId: conversationId
+            });
+
+            return true;
+        } catch (error) {
+            console.error('Error in connectWebSocket:', error);
+            set({ 
+                error: 'Failed to connect to WebSocket. Please try again later.',
+                wsConnecting: false,
+                wsConnected: false,
+                currentConversationId: null
+            });
+            return false;
+        }
+    },
+
+    disconnectWebSocket: async () => {
+        // Only disconnect if connected
+        if (!get().wsConnected) {
+            return;
+        }
+
+        try {
+            await websocketService.disconnect();
+            set({ 
+                wsConnected: false, 
+                wsConnecting: false,
+                currentConversationId: null
+            });
+        } catch (error) {
+            console.error('Error disconnecting WebSocket:', error);
+        }
+    },
+
+    // New method to initialize chat (combines fetching and connecting)
+    initializeChat: async (documentId: number) => {
+        set({ loading: true, error: null });
+
+        try {
+            // Fetch messages first
+            const conversation = await ChatAPI.fetchMessages(documentId);
+            set({ conversation });
+
+            // Then connect to WebSocket if we have a conversation
+            if (conversation?.id) {
+                await get().connectWebSocket(conversation.id);
+            }
+        } catch (err: any) {
+            console.error('Error initializing chat:', err);
+            set({ error: 'Failed to initialize chat. Please try again later.' });
+        } finally {
+            set({ loading: false });
+        }
+    }
 }));

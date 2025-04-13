@@ -56,7 +56,6 @@ export default function AnalysisResultsScreen() {
                         Document: {currentDocument.filename}
                     </Text>
 
-                    {/* Dropdown and Analyze Button */}
                     <View className="flex-row items-center mt-4">
                         <View className="w-fit mr-2 ml-auto">
                             <TouchableOpacity 
