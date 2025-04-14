@@ -1,7 +1,7 @@
 import {create} from "zustand";
 import {settings} from "../services/api/config";
 import * as AuthAPI from "../services/api/auth";
-import {User, AuthState, ProfileUpdateData} from "../types/auth.types";
+import {AuthState, ProfileUpdateData, UserRegister} from "../types/auth.types";
 
 export const useAuthStore = create<AuthState>((set, get) => ({
     user: null,
@@ -60,6 +60,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             console.error("Error updating user profile:", err);
             const errorMessage = err.response?.data?.detail || err.message || "Failed to update profile";
             set({error: errorMessage});
+        } finally {
+            set({loading: false});
+        }
+    },
+    register: async (registerData: UserRegister) => {
+        set({loading: true, error: null});
+        try {
+            await AuthAPI.register(registerData);
+            return true;
+        } catch (err: any) {
+            console.error("Error registering user:", err);
+            const errorMessage = err.response?.data?.detail || err.message || "Failed to register";
+            set({error: errorMessage});
+            return false;
         } finally {
             set({loading: false});
         }

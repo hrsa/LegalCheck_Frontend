@@ -1,7 +1,7 @@
 import * as SecureStore from 'expo-secure-store'
 import apiClient from "./apiClient";
 import {settings} from "./config";
-import {ProfileUpdateData, User} from "../../types/auth.types";
+import {ProfileUpdateData, User, UserRegister} from "../../types/auth.types";
 
 export const storeToken = async (token: string) => {
     await SecureStore.setItemAsync("accessToken", token);
@@ -57,5 +57,10 @@ export const fetchUser = async () => {
 
 export const updateUser = async (userData: ProfileUpdateData) => {
     const response = await apiClient.patch("/users/me", userData);
+    return response.data as User;
+};
+
+export const register = async (registerData: UserRegister) => {
+    const response = await apiClient.post("/register", registerData);
     return response.data as User;
 };

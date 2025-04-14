@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {forwardRef} from 'react';
 import {TouchableOpacity, Text, ActivityIndicator, TouchableOpacityProps, View} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import {IoniconsName} from "../types/navigation.types";
@@ -15,7 +15,7 @@ interface ButtonProps extends TouchableOpacityProps {
     iconSize?: number;
 }
 
-export default function Button({
+const Button = forwardRef<View, ButtonProps>(({
                                    title,
                                    loading = false,
                                    variant = 'primary',
@@ -25,7 +25,7 @@ export default function Button({
                                    icon,
                                    iconSize = 24,
                                    ...props
-                               }: ButtonProps) {
+                               }: ButtonProps, ref) => {
     const baseButtonStyles = 'rounded-md py-2 px-4 font-black flex-row justify-center items-center';
 
     const variantStyles = {
@@ -46,6 +46,7 @@ export default function Button({
 
     return (
         <TouchableOpacity
+            ref={ref}
             className={`${baseButtonStyles} ${variantStyles[variant]} ${disabledStyle} ${className}`}
             disabled={disabled || loading}
             {...props}
@@ -55,10 +56,10 @@ export default function Button({
             ) : (
                 <>
                     {icon && (
-                        <Ionicons 
-                            name={icon} 
-                            size={iconSize} 
-                            color={variant === 'transparent' ? 'black' : 'white'} 
+                        <Ionicons
+                            name={icon}
+                            size={iconSize}
+                            color={variant === 'transparent' ? 'black' : 'white'}
                             style={{ marginRight: title ? 8 : 0 }}
                         />
                     )}
@@ -69,4 +70,6 @@ export default function Button({
             )}
         </TouchableOpacity>
     );
-}
+});
+
+export default Button;

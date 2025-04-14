@@ -9,6 +9,14 @@ export interface User {
     company_id: number;
 }
 
+export type UserRegister = {
+    email: string;
+    password: string;
+    first_name: string;
+    last_name: string;
+    invite_code: string;
+};
+
 export type ProfileUpdateData = {
     first_name: string;
     last_name: string;
@@ -27,5 +35,6 @@ export interface AuthState {
     logout: () => Promise<void>;
     fetchUser: () => Promise<void>;
     updateProfile: (userData: ProfileUpdateData) => Promise<void>;
+    register: (registerData: UserRegister) => Promise<boolean>;
 
 }
