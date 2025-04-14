@@ -9,6 +9,15 @@ export interface User {
     company_id: number;
 }
 
+export type ProfileUpdateData = {
+    first_name: string;
+    last_name: string;
+    email?: string;
+    password?: string;
+    company_id: number;
+};
+
+
 export interface AuthState {
     user: User | null;
     loading: boolean;
@@ -17,4 +26,6 @@ export interface AuthState {
     login: (email: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
     fetchUser: () => Promise<void>;
+    updateProfile: (userData: ProfileUpdateData) => Promise<void>;
+
 }

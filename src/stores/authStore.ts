@@ -1,8 +1,7 @@
 import {create} from "zustand";
-import apiClient from "../services/api/apiClient";
 import {settings} from "../services/api/config";
-import {deleteToken, storeToken} from "../services/api/auth";
-import {User, AuthState} from "../types/auth.types";
+import * as AuthAPI from "../services/api/auth";
+import {User, AuthState, ProfileUpdateData} from "../types/auth.types";
 
 export const useAuthStore = create<AuthState>((set, get) => ({
     user: null,
@@ -13,25 +12,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         set({loading: true, error: null});
 
         try {
-            const formData = new FormData();
-            formData.append('username', email);
-            formData.append('password', password);
-
-            const response = await apiClient.post('/auth/login', formData, {
-                headers: {'Content-Type': 'multipart/form-data'},
-            });
-
-            if (settings.MOBILE_PLATFORM) {
-                const cookie = response.headers['set-cookie']?.[0];
-                if (cookie) {
-                    const match = cookie.match(/legalcheck_access_token=([^;]+)/);
-                    const token = match && match[1];
-                    if (token) {
-                        await storeToken(token);
-                    }
-                }
-            }
-
+            await AuthAPI.login(email, password);
             await get().fetchUser();
         } catch (error: any) {
             const errorDetail = error.response?.data?.detail;
@@ -46,32 +27,39 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     },
     logout: async () => {
         set({loading: true});
-        await apiClient.post("/auth/logout");
-
-        if (!settings.MOBILE_PLATFORM) {
-            document.cookie = "legalcheck_access_token=; path=/; max-age=0;";
-        }
-
-        if (settings.MOBILE_PLATFORM) {
-            await deleteToken();
-            if (settings.DEBUG_REQUESTS) console.log("Token removed");
-        }
-
+        await AuthAPI.logout();
         set({user: null, loading: false});
     },
     fetchUser: async () => {
         set({loading: true});
         try {
             console.log("Fetching user");
-            const {data} = await apiClient.get("/users/me");
-            set({user: data});
-            if (settings.DEBUG_REQUESTS) console.log("Fetched user:", data);
+            const user = await AuthAPI.fetchUser();
+            set({user});
+            if (settings.DEBUG_REQUESTS) console.log("Fetched user:", user);
         } catch (err: any) {
             console.error("Error fetching user:", err);
             if (settings.MOBILE_PLATFORM) {
-                await deleteToken();
+                await AuthAPI.deleteToken();
             }
             set({user: null});
+        } finally {
+            set({loading: false});
+        }
+    },
+    updateProfile: async (userData: ProfileUpdateData) => {
+        set({loading: true, error: null});
+        if (!userData.password || !userData.password.trim()) {
+            delete userData.password;
+        }
+        try {
+            const updatedUser = await AuthAPI.updateUser(userData);
+            set({user: updatedUser});
+            if (settings.DEBUG_REQUESTS) console.log("Updated user:", updatedUser);
+        } catch (err: any) {
+            console.error("Error updating user profile:", err);
+            const errorMessage = err.response?.data?.detail || err.message || "Failed to update profile";
+            set({error: errorMessage});
         } finally {
             set({loading: false});
         }
