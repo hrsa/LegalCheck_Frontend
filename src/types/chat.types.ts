@@ -1,4 +1,7 @@
-export type MessageAuthor = "User" | "LegalCheck"
+export enum MessageAuthor {
+    user = "User",
+    ai = "LegalCheck"
+}
 
 export interface ChatMessage {
     id: number;

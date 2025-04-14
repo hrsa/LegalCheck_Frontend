@@ -1,5 +1,5 @@
 import {create} from "zustand";
-import {ChatMessage, ChatState, Conversation} from "../types/chat.types";
+import {ChatMessage, ChatState, Conversation, MessageAuthor} from "../types/chat.types";
 import * as ChatAPI from "../services/api/chat";
 import websocketService from "../services/api/websocket";
 import {WebSocketEventType} from "../types/websocket.types";
@@ -78,7 +78,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
             const tempUserMessage: ChatMessage = {
                 conversation_id: conversation.id,
                 content: content,
-                author: "User",
+                author: MessageAuthor.user,
                 created_at: new Date().toISOString(),
                 id: Math.floor(Math.random() * 1000) + 1,
             };
