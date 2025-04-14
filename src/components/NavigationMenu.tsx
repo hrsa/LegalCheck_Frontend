@@ -25,10 +25,10 @@ export default function NavigationMenu() {
 
     const navItems: NavigationItem[] = [
         { title: 'Home', path: '/home', icon: 'home-outline' },
+        { title: 'My Profile', path: '/profile', icon: 'person-outline' },
         { title: 'My Policies', path: '/policies', icon: 'list-outline' },
         { title: 'My Documents', path: '/documents', icon: 'document-text-outline' },
         { title: 'My Checklists', path: '/checklists', icon: 'checkbox' },
-        { title: 'My Profile', path: '/profile', icon: 'person-outline' },
     ];
 
     return (

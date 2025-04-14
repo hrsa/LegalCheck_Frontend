@@ -4,7 +4,8 @@ import { useAuthStore } from '../../src/stores/authStore';
 import TextInput from '../../src/components/TextInput';
 import Button from '../../src/components/Button';
 import { User } from '../../src/types/auth.types';
-import { Notification, useNotification } from '../../src/components/Notification';
+import { useNotificationStore } from '../../src/stores/notificationStore';
+import {router} from "expo-router";
 
 export default function ProfileScreen() {
     const { user, loading, error, updateProfile } = useAuthStore();
@@ -17,8 +18,8 @@ export default function ProfileScreen() {
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
-    // Use the notification hook
-    const { notification, showNotification, hideNotification, showAlert } = useNotification();
+    // Use the notification store
+    const { showNotification, showAlert } = useNotificationStore();
 
     useEffect(() => {
         if (user) {
@@ -70,6 +71,7 @@ export default function ProfileScreen() {
 
             setIsEditing(false);
             showAlert('Success', 'Profile updated successfully', 'success');
+            router.replace('/profile')
         } catch (err) {
             showAlert('Error', 'Failed to update profile. Please try again.', 'error');
         } finally {
@@ -90,13 +92,6 @@ export default function ProfileScreen() {
         <ScrollView className="flex-1 bg-white">
             <View className="p-6 self-center" style={{maxWidth: 1250, width: '100%'}}>
                 <Text className="text-2xl font-bold mb-6">My Profile</Text>
-
-                <Notification 
-                    type={notification.type || undefined}
-                    message={notification.message}
-                    visible={notification.visible}
-                    onDismiss={hideNotification}
-                />
 
                 <View className="bg-gray-50 rounded-lg p-6 mb-6">
                     <View className="mb-4">

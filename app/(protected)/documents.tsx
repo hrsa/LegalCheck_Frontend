@@ -8,7 +8,7 @@ import {Document} from '../../src/types/document.types';
 import {useDocumentStore} from "../../src/stores/documentStore";
 import DocumentItem from "../../src/components/document/DocumentItem";
 import * as DocumentPicker from 'expo-document-picker';
-import { Notification, useNotification } from '../../src/components/Notification';
+import { useNotificationStore } from '../../src/stores/notificationStore';
 
 export default function DocumentsScreen() {
     const {user} = useAuthStore();
@@ -26,7 +26,7 @@ export default function DocumentsScreen() {
         uploadDocument
     } = useDocumentStore();
 
-    const { notification, showNotification, hideNotification, showAlert } = useNotification();
+    const { showAlert } = useNotificationStore();
 
     useEffect(() => {
         fetchDocuments();
@@ -93,12 +93,6 @@ export default function DocumentsScreen() {
 
     return (
         <View style={{flex: 1, padding: 16}}>
-            <Notification 
-                type={notification.type || undefined}
-                message={notification.message}
-                visible={notification.visible}
-                onDismiss={hideNotification}
-            />
 
             <View
                 style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16}}>

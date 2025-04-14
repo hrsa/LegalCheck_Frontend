@@ -8,7 +8,7 @@ import ChecklistItem from '../../src/components/checklist/ChecklistItem';
 import Button from '../../src/components/Button';
 import ChecklistFormModal from '../../src/components/checklist/ChecklistFormModal';
 import { Checklist } from '../../src/types/checklist.types';
-import { Notification, useNotification } from '../../src/components/Notification';
+import { useNotificationStore } from '../../src/stores/notificationStore';
 
 export default function ChecklistsScreen() {
     const {
@@ -28,7 +28,7 @@ export default function ChecklistsScreen() {
 
     const { fetchPolicies } = usePolicyStore();
 
-    const { notification, showNotification, hideNotification, showAlert } = useNotification();
+    const { showAlert } = useNotificationStore();
 
     useEffect(() => {
         fetchChecklists();
@@ -61,12 +61,6 @@ export default function ChecklistsScreen() {
 
     return (
         <View style={{ flex: 1, padding: 16 }}>
-            <Notification 
-                type={notification.type || undefined}
-                message={notification.message}
-                visible={notification.visible}
-                onDismiss={hideNotification}
-            />
 
             <View
                 style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>

@@ -46,7 +46,7 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
 
             const {documents} = get();
             set({
-                documents: [...documents, newDocument]
+                documents: [newDocument, ...documents]
             });
 
             return Promise.resolve();

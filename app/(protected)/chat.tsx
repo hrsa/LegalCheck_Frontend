@@ -1,42 +1,49 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, FlatList, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
-import { useChatStore } from '../../src/stores/chatStore';
-import { useDocumentStore } from '../../src/stores/documentStore';
-import { ChatMessage } from '../../src/types/chat.types';
+import React, {useEffect, useState, useRef} from 'react';
+import {
+    View,
+    Text,
+    FlatList,
+    TextInput,
+    KeyboardAvoidingView,
+    Platform,
+    ActivityIndicator,
+    TouchableOpacity
+} from 'react-native';
+import {useLocalSearchParams} from 'expo-router';
+import {useChatStore} from '../../src/stores/chatStore';
+import {useDocumentStore} from '../../src/stores/documentStore';
+import {ChatMessage} from '../../src/types/chat.types';
 import Button from '../../src/components/Button';
 import LoadingIndicator from '../../src/components/LoadingIndicator';
 import ErrorMessage from '../../src/components/ErrorMessage';
 
 export default function ChatScreen() {
-    const { document_id } = useLocalSearchParams<{ document_id: string }>();
+    const {document_id} = useLocalSearchParams<{ document_id: string }>();
     const documentId = parseInt(document_id || '0', 10);
 
-    const { 
-        conversation, 
-        loading, 
-        error, 
-        sending, 
+    const {
+        conversation,
+        loading,
+        error,
+        sending,
         wsConnected,
         wsConnecting,
         currentConversationId,
-        initializeChat, 
-        sendMessage, 
+        initializeChat,
+        sendMessage,
         disconnectWebSocket,
         updateConversation
     } = useChatStore();
-    const { currentDocument, fetchDocument } = useDocumentStore();
+    const {currentDocument, fetchDocument} = useDocumentStore();
 
     const [messageText, setMessageText] = useState('');
     const [isEditingTitle, setIsEditingTitle] = useState(false);
     const [titleText, setTitleText] = useState('');
     const flatListRef = useRef<FlatList>(null);
 
-    // Single useEffect for initialization and cleanup
     useEffect(() => {
         if (!documentId) return;
 
-        // Initialize chat and document
         const initialize = async () => {
             try {
                 // Fetch document and messages in sequence to ensure we have the document first
@@ -49,10 +56,8 @@ export default function ChatScreen() {
 
         initialize();
 
-        // Cleanup on unmount
         return () => {
             console.log('Disconnecting WebSocket from cleanup function');
-            // We need to use a separate function because cleanup functions can't be async
             const disconnect = async () => {
                 try {
                     await disconnectWebSocket();
@@ -62,12 +67,10 @@ export default function ChatScreen() {
                 }
             };
 
-            // Execute the disconnect function
             disconnect();
         };
     }, [documentId, fetchDocument, initializeChat, disconnectWebSocket]);
 
-    // Update titleText when conversation changes
     useEffect(() => {
         if (conversation?.title) {
             setTitleText(conversation.title);
@@ -98,11 +101,11 @@ export default function ChatScreen() {
         }
     };
 
-    const renderMessage = ({ item }: { item: ChatMessage }) => {
+    const renderMessage = ({item}: { item: ChatMessage }) => {
         const isUser = item.author === 'User';
 
         return (
-            <View 
+            <View
                 className={`p-3 rounded-lg mb-2 max-w-3/4 ${isUser ? 'bg-blue-500 self-end' : 'bg-gray-200 self-start'}`}
             >
                 <Text className={isUser ? 'text-white' : 'text-gray-800'}>
@@ -124,7 +127,7 @@ export default function ChatScreen() {
     }
 
     return (
-        <KeyboardAvoidingView 
+        <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             className="flex-1"
             keyboardVerticalOffset={100}
@@ -145,11 +148,10 @@ export default function ChatScreen() {
                                     onPress={handleUpdateTitle}
                                     disabled={!titleText.trim()}
                                 />
-                                <TouchableOpacity 
-                                    className="ml-2 p-2" 
+                                <TouchableOpacity
+                                    className="ml-2 p-2"
                                     onPress={() => {
                                         setIsEditingTitle(false);
-                                        // Reset to original title if canceled
                                         if (conversation?.title) {
                                             setTitleText(conversation.title);
                                         } else if (currentDocument) {
@@ -172,11 +174,12 @@ export default function ChatScreen() {
                         )}
 
                         {wsConnected && currentConversationId && (
-                            <Text className="text-xs text-green-500 mt-1">Connected to chat (ID: {currentConversationId})</Text>
+                            <Text className="text-xs text-green-500 mt-1">Connected to chat
+                                (ID: {currentConversationId})</Text>
                         )}
                         {wsConnecting && (
                             <View className="flex-row items-center mt-1">
-                                <ActivityIndicator size="small" color="#F59E0B" />
+                                <ActivityIndicator size="small" color="#F59E0B"/>
                                 <Text className="text-xs text-yellow-500 ml-1">
                                     Connecting to chat...
                                 </Text>
@@ -184,8 +187,8 @@ export default function ChatScreen() {
                         )}
                         {!wsConnected && !wsConnecting && (
                             <Text className="text-xs text-red-500 mt-1">
-                                Not connected to chat. 
-                                <Text 
+                                Not connected to chat.
+                                <Text
                                     className="text-blue-500 underline ml-1"
                                     onPress={() => initializeChat(documentId, currentDocument.filename)}
                                 >
@@ -197,9 +200,9 @@ export default function ChatScreen() {
                 )}
 
                 {loading ? (
-                    <LoadingIndicator />
+                    <LoadingIndicator/>
                 ) : error ? (
-                    <ErrorMessage 
+                    <ErrorMessage
                         message={error}
                         onRetry={() => initializeChat(documentId)}
                     />
@@ -209,12 +212,12 @@ export default function ChatScreen() {
                         data={conversation?.messages || []}
                         renderItem={renderMessage}
                         keyExtractor={(item) => item.id.toString()}
-                        contentContainerStyle={{ paddingBottom: 10 }}
+                        contentContainerStyle={{paddingBottom: 10}}
                         className="flex-1"
                         onContentSizeChange={() => {
                             if (conversation && conversation?.messages?.length > 0) {
                                 setTimeout(() => {
-                                    flatListRef.current?.scrollToEnd({ animated: true });
+                                    flatListRef.current?.scrollToEnd({animated: true});
                                 }, 100);
                             }
                         }}
@@ -234,6 +237,18 @@ export default function ChatScreen() {
                         onChangeText={setMessageText}
                         placeholder="Type a message..."
                         multiline
+                        onKeyPress={(e) => {
+                            if (Platform.OS === 'web' && e.nativeEvent.key === 'Enter') {
+                                const webEvent = e.nativeEvent as any;
+                                if (!webEvent.shiftKey) {
+                                    e.preventDefault();
+                                    handleSendMessage();
+                                }
+                            }
+                        }}
+                        onSubmitEditing={() => {
+                            handleSendMessage();
+                        }}
                     />
                     <Button
                         title="Send"

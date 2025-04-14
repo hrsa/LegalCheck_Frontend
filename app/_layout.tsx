@@ -3,6 +3,7 @@ import {Stack, useRouter, useSegments} from "expo-router";
 import {useAuthStore} from "../src/stores/authStore";
 import {useEffect} from "react";
 import {ActivityIndicator, View} from "react-native";
+import { GlobalNotification } from "../src/components/GlobalNotification";
 
 function InitialLayout() {
     const { user, loading, fetchUser } = useAuthStore();
@@ -16,8 +17,9 @@ function InitialLayout() {
     useEffect(() => {
         if(loading) return;
         const inAuthGroup = segments[0] === '(auth)';
+        const inProtectedGroup = segments[0] === '(protected)';
 
-        if (!user && !inAuthGroup) {
+        if (!user && inProtectedGroup) {
             router.replace('/login');
         } else if (user && inAuthGroup) {
             router.replace('/home');
@@ -32,9 +34,14 @@ function InitialLayout() {
         );
     }
 
-    return <Stack screenOptions={{
-        headerShown: false
-    }} />
+    return (
+        <View style={{ flex: 1 }}>
+            <Stack screenOptions={{
+                headerShown: false
+            }} />
+            <GlobalNotification />
+        </View>
+    )
 }
 
 export default function RootLayout() {

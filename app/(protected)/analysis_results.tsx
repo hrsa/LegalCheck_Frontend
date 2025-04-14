@@ -9,7 +9,7 @@ import AnalysisResultItem from "../../src/components/analysis/AnalysisResultItem
 import {useChecklistStore} from "../../src/stores/checklistStore";
 import {Checklist} from "../../src/types/checklist.types";
 import { Ionicons } from '@expo/vector-icons';
-import { Notification, useNotification } from '../../src/components/Notification';
+import { useNotificationStore } from '../../src/stores/notificationStore';
 
 export default function AnalysisResultsScreen() {
     const {user} = useAuthStore();
@@ -24,8 +24,8 @@ export default function AnalysisResultsScreen() {
     } = useAnalysisResultStore();
     const {checklists, loading: checklistsLoading, error: checklistsError, fetchChecklists} = useChecklistStore();
 
-    // Use the notification hook
-    const { notification, showNotification, hideNotification, showAlert } = useNotification();
+    // Use the notification store
+    const { showAlert } = useNotificationStore();
 
     const [selectedChecklist, setSelectedChecklist] = useState<Checklist | null>(null);
     const [dropdownVisible, setDropdownVisible] = useState(false);
@@ -53,12 +53,6 @@ export default function AnalysisResultsScreen() {
 
     return (
         <View style={{flex: 1, padding: 16}}>
-            <Notification 
-                type={notification.type || undefined}
-                message={notification.message}
-                visible={notification.visible}
-                onDismiss={hideNotification}
-            />
 
             {currentDocument && (
                 <View className="mb-4">

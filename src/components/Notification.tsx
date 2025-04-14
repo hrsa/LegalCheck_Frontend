@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Platform } from 'react-native';
+import { View, Text, Platform, TouchableOpacity } from 'react-native';
 import { Alert } from 'react-native';
 
 export type NotificationType = 'success' | 'error' | 'warning';
@@ -22,7 +22,7 @@ export const Notification: React.FC<NotificationProps> = ({
             const timer = setTimeout(() => {
                 onDismiss();
             }, 5000);
-            
+
             return () => clearTimeout(timer);
         }
     }, [visible, onDismiss]);
@@ -30,25 +30,30 @@ export const Notification: React.FC<NotificationProps> = ({
     if (!visible) return null;
 
     return (
-        <View 
-            className={`p-4 mb-4 rounded-lg ${
-                type === 'success' ? 'bg-green-100 border-green-500' : 
-                type === 'error' ? 'bg-red-100 border-red-500' : 
-                'bg-yellow-100 border-yellow-500'
-            } border`}
+        <TouchableOpacity 
+            onPress={onDismiss}
+            activeOpacity={0.8}
         >
-            <Text 
-                className={`${
-                    type === 'success' ? 'text-green-700' : 
-                    type === 'error' ? 'text-red-700' : 
-                    'text-yellow-700'
-                } font-medium`}
+            <View 
+                className={`p-4 mb-4 rounded-lg ${
+                    type === 'success' ? 'bg-green-100 border-green-500' : 
+                    type === 'error' ? 'bg-red-100 border-red-500' : 
+                    'bg-yellow-100 border-yellow-500'
+                } border`}
             >
-                {type === 'success' ? 'Success: ' : 
-                 type === 'error' ? 'Error: ' : 
-                 'Warning: '}{message}
-            </Text>
-        </View>
+                <Text 
+                    className={`${
+                        type === 'success' ? 'text-green-700' : 
+                        type === 'error' ? 'text-red-700' : 
+                        'text-yellow-700'
+                    } font-medium`}
+                >
+                    {type === 'success' ? 'Success: ' : 
+                     type === 'error' ? 'Error: ' : 
+                     'Warning: '}{message}
+                </Text>
+            </View>
+        </TouchableOpacity>
     );
 };
 
