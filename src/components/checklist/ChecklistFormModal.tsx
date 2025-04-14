@@ -1,11 +1,12 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, TextInput, Modal, TouchableOpacity, ScrollView, Alert} from 'react-native';
+import {View, Text, TextInput, Modal, TouchableOpacity, ScrollView} from 'react-native';
 import Button from '../Button';
 import Badge from '../Badge';
 import {Checklist, ChecklistType, checklistTypes} from '../../types/checklist.types';
 import {usePolicyStore} from '../../stores/policyStore';
 import {Rule} from '../../types/policy.types';
 import RuleItem from '../policy/RuleItem';
+import { Notification, useNotification } from '../Notification';
 
 interface ChecklistFormModalProps {
     visible: boolean;
@@ -25,6 +26,8 @@ export default function ChecklistFormModal({
                                                updating
                                            }: ChecklistFormModalProps) {
     const {policies} = usePolicyStore();
+
+    const { notification, showNotification, hideNotification, showAlert } = useNotification();
 
     const [name, setName] = useState('');
     const [type, setType] = useState<ChecklistType>('user');
@@ -105,7 +108,7 @@ export default function ChecklistFormModal({
             onClose();
             resetForm();
         } catch (error) {
-            Alert.alert('Error', 'Failed to save checklist. Please try again.');
+            showAlert('Error', 'Failed to save checklist. Please try again.', 'error');
         }
     };
 
@@ -118,7 +121,7 @@ export default function ChecklistFormModal({
             onClose();
             resetForm();
         } catch (error) {
-            Alert.alert('Error', 'Failed to delete checklist. Please try again.');
+            showAlert('Error', 'Failed to delete checklist. Please try again.', 'error');
         }
     }
 
@@ -151,6 +154,13 @@ export default function ChecklistFormModal({
                     <Text className="text-xl font-bold mb-4">
                         {checklist && checklist.id ? 'Edit Checklist' : 'Create Checklist'}
                     </Text>
+
+                    <Notification 
+                        type={notification.type || undefined}
+                        message={notification.message}
+                        visible={notification.visible}
+                        onDismiss={hideNotification}
+                    />
 
                     <View className="mb-4">
                         <Text className="text-gray-700 mb-1">Name</Text>

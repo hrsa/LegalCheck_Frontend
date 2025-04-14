@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import Button from '../../src/components/Button';
-import {View, Text, FlatList, Alert, TouchableOpacity, Modal} from 'react-native';
+import {View, Text, FlatList, TouchableOpacity, Modal} from 'react-native';
 import {useAuthStore} from '../../src/stores/authStore';
 import LoadingIndicator from '../../src/components/LoadingIndicator';
 import ErrorMessage from '../../src/components/ErrorMessage';
@@ -9,6 +9,7 @@ import AnalysisResultItem from "../../src/components/analysis/AnalysisResultItem
 import {useChecklistStore} from "../../src/stores/checklistStore";
 import {Checklist} from "../../src/types/checklist.types";
 import { Ionicons } from '@expo/vector-icons';
+import { Notification, useNotification } from '../../src/components/Notification';
 
 export default function AnalysisResultsScreen() {
     const {user} = useAuthStore();
@@ -22,6 +23,9 @@ export default function AnalysisResultsScreen() {
         setCurrentDocument
     } = useAnalysisResultStore();
     const {checklists, loading: checklistsLoading, error: checklistsError, fetchChecklists} = useChecklistStore();
+
+    // Use the notification hook
+    const { notification, showNotification, hideNotification, showAlert } = useNotification();
 
     const [selectedChecklist, setSelectedChecklist] = useState<Checklist | null>(null);
     const [dropdownVisible, setDropdownVisible] = useState(false);
@@ -42,13 +46,20 @@ export default function AnalysisResultsScreen() {
         } else if (currentDocument) {
             analyzeDocument(currentDocument.id, null);
         } else {
-            Alert.alert("Error", "No document selected for analysis");
+            showAlert("Error", "No document selected for analysis", "error");
         }
     };
 
 
     return (
         <View style={{flex: 1, padding: 16}}>
+            <Notification 
+                type={notification.type || undefined}
+                message={notification.message}
+                visible={notification.visible}
+                onDismiss={hideNotification}
+            />
+
             {currentDocument && (
                 <View className="mb-4">
                     <Text className="text-2xl font-bold">Analysis Results</Text>

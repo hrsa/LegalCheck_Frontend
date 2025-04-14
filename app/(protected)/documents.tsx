@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 import Button from '../../src/components/Button';
-import {View, Text, FlatList, Alert} from 'react-native';
+import {View, Text, FlatList} from 'react-native';
 import {useAuthStore} from '../../src/stores/authStore';
 import LoadingIndicator from '../../src/components/LoadingIndicator';
 import ErrorMessage from '../../src/components/ErrorMessage';
@@ -8,6 +8,7 @@ import {Document} from '../../src/types/document.types';
 import {useDocumentStore} from "../../src/stores/documentStore";
 import DocumentItem from "../../src/components/document/DocumentItem";
 import * as DocumentPicker from 'expo-document-picker';
+import { Notification, useNotification } from '../../src/components/Notification';
 
 export default function DocumentsScreen() {
     const {user} = useAuthStore();
@@ -24,6 +25,8 @@ export default function DocumentsScreen() {
         setCurrentDocument,
         uploadDocument
     } = useDocumentStore();
+
+    const { notification, showNotification, hideNotification, showAlert } = useNotification();
 
     useEffect(() => {
         fetchDocuments();
@@ -77,19 +80,26 @@ export default function DocumentsScreen() {
                       };
 
                 await uploadDocument(fileToUpload);
-                Alert.alert('Success', 'Document uploaded successfully');
+                showAlert('Success', 'Document uploaded successfully', 'success');
             } catch (error) {
-                Alert.alert('Error', 'Failed to upload document. Please try again.');
+                showAlert('Error', 'Failed to upload document. Please try again.', 'error');
                 console.error('Upload error:', error);
             }
         } catch (err) {
-            Alert.alert('Error', 'Failed to pick document. Please try again.');
+            showAlert('Error', 'Failed to pick document. Please try again.', 'error');
             console.error('Document picker error:', err);
         }
     };
 
     return (
         <View style={{flex: 1, padding: 16}}>
+            <Notification 
+                type={notification.type || undefined}
+                message={notification.message}
+                visible={notification.visible}
+                onDismiss={hideNotification}
+            />
+
             <View
                 style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16}}>
                 <Text style={{fontSize: 20, fontWeight: 'bold'}}>

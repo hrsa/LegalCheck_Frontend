@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, FlatList, Alert } from 'react-native';
+import { View, Text, FlatList } from 'react-native';
 import { useChecklistStore } from '../../src/stores/checklistStore';
 import { usePolicyStore } from '../../src/stores/policyStore';
 import LoadingIndicator from '../../src/components/LoadingIndicator';
@@ -8,6 +8,7 @@ import ChecklistItem from '../../src/components/checklist/ChecklistItem';
 import Button from '../../src/components/Button';
 import ChecklistFormModal from '../../src/components/checklist/ChecklistFormModal';
 import { Checklist } from '../../src/types/checklist.types';
+import { Notification, useNotification } from '../../src/components/Notification';
 
 export default function ChecklistsScreen() {
     const {
@@ -26,6 +27,8 @@ export default function ChecklistsScreen() {
     } = useChecklistStore();
 
     const { fetchPolicies } = usePolicyStore();
+
+    const { notification, showNotification, hideNotification, showAlert } = useNotification();
 
     useEffect(() => {
         fetchChecklists();
@@ -46,18 +49,25 @@ export default function ChecklistsScreen() {
         try {
             if (currentChecklist && currentChecklist.id) {
                 await updateChecklist(currentChecklist.id, data);
-                Alert.alert('Success', 'Checklist updated successfully');
+                showAlert('Success', 'Checklist updated successfully', 'success');
             } else {
                 await createChecklist(data);
-                Alert.alert('Success', 'Checklist created successfully');
+                showAlert('Success', 'Checklist created successfully', 'success');
             }
         } catch (error) {
-            Alert.alert('Error', 'Failed to save checklist. Please try again.');
+            showAlert('Error', 'Failed to save checklist. Please try again.', 'error');
         }
     };
 
     return (
         <View style={{ flex: 1, padding: 16 }}>
+            <Notification 
+                type={notification.type || undefined}
+                message={notification.message}
+                visible={notification.visible}
+                onDismiss={hideNotification}
+            />
+
             <View
                 style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <Text style={{ fontSize: 20, fontWeight: 'bold' }}>

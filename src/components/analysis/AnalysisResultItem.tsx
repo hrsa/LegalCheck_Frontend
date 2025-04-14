@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { AnalysisResult } from '../../types/analysis_result.types';
-import { Ionicons } from '@expo/vector-icons';
+import React, {useState} from 'react';
+import {View, Text, TouchableOpacity} from 'react-native';
+import {AnalysisResult} from '../../types/analysis_result.types';
+import {Ionicons} from '@expo/vector-icons';
 import Badge from "../Badge";
 
 interface AnalysisResultItemProps {
@@ -14,25 +14,25 @@ interface CollapsibleSectionProps {
     children: React.ReactNode;
 }
 
-const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, count, children }) => {
+const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({title, count, children}) => {
     const [expanded, setExpanded] = useState(false);
 
     if (count === 0) return null;
 
     return (
         <View className="mb-4">
-            <TouchableOpacity 
+            <TouchableOpacity
                 className="flex-row justify-between items-center bg-gray-100 p-3 rounded-lg"
                 onPress={() => setExpanded(!expanded)}
             >
                 <Text className="font-bold text-lg">{title} ({count})</Text>
-                <Ionicons 
-                    name={expanded ? "chevron-up" : "chevron-down"} 
-                    size={24} 
-                    color="black" 
+                <Ionicons
+                    name={expanded ? "chevron-up" : "chevron-down"}
+                    size={24}
+                    color="black"
                 />
             </TouchableOpacity>
-            
+
             {expanded && (
                 <View className="mt-2 p-3 bg-white rounded-lg border border-gray-200">
                     {children}
@@ -42,7 +42,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, count, c
     );
 };
 
-export default function AnalysisResultItem({ item }: AnalysisResultItemProps) {
+export default function AnalysisResultItem({item}: AnalysisResultItemProps) {
     return (
         <View className="bg-white p-4 rounded-lg shadow-sm mb-4">
             <View className="mb-4">
@@ -98,7 +98,7 @@ export default function AnalysisResultItem({ item }: AnalysisResultItemProps) {
                 {item.payment_terms.map((term, index) => (
                     <View key={index} className="mb-3 pb-3 border-gray-100 last:border-0">
                         {term.title && <Text className="font-bold">{term.title}</Text>}
-                        
+
                         <View className="mt-2">
                             {term.due_date && (
                                 <Text className="mb-1">Due Date: {term.due_date}</Text>
