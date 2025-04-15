@@ -1,6 +1,6 @@
 import { settings } from "./config";
 import { getToken } from "./auth";
-import {WebSocketEvent, WebSocketEventType} from "../../types/websocket.types";
+import {WebSocketEventType} from "../../types/websocket.types";
 
 // Define event handlers type
 type MessageHandler = (data: any) => void;
@@ -176,28 +176,22 @@ class WebSocketService {
     this.socket.send(JSON.stringify(data));
   }
 
-  // Private methods
   private async getWebSocketUrl(conversationId: number): Promise<string | null> {
     let wsUrl = '';
 
     if (!settings.MOBILE_PLATFORM) {
-      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsHost = settings.API_URL ? new URL(settings.API_URL).host : 'localhost:8000';
-      wsUrl = `${wsProtocol}//${wsHost}/api/v1/ws/conversations/${conversationId}`;
+      wsUrl = `${settings.WS_API_URL}/ws/conversations/${conversationId}`;
     } else {
-      // On mobile, we need to explicitly include the token
       const token = await getToken();
       if (!token) {
         console.error('No authentication token found');
         return null;
       }
-      wsUrl = `ws://localhost:8000/api/v1/ws/conversations/${conversationId}?token=${encodeURIComponent(token)}`;
+      wsUrl = `${settings.WS_API_URL}/ws/conversations/${conversationId}?token=${encodeURIComponent(token)}`;
     }
 
     return wsUrl;
   }
-
-  // handleOpen is now handled directly in the connect method with a one-time event listener
 
   private handleMessage(event: MessageEvent): void {
     try {
@@ -229,7 +223,6 @@ class WebSocketService {
   }
 }
 
-// Create singleton instance
 export const websocketService = new WebSocketService();
 
 export default websocketService;
