@@ -11,7 +11,7 @@ const LOCAL_API_URL =
     MOBILE_PLATFORM ? "http://192.168.2.2:800/api/" : "http://localhost:800/api/";
 
 const LOCAL_WS_API_URL =
-    MOBILE_PLATFORM ? "ws:/192.168.2.2:800/api/" : "ws:/localhost:800/api/";
+    MOBILE_PLATFORM ? "ws:/192.168.2.2:800/api/ws" : "ws:/localhost:800/api/ws";
 
 export const settings = {
     MOBILE_PLATFORM: MOBILE_PLATFORM,

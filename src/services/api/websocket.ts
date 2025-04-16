@@ -189,6 +189,9 @@ class WebSocketService {
       wsUrl = `${settings.WS_API_URL}/conversations/${conversationId}?token=${encodeURIComponent(token)}`;
     }
 
+    console.log('WebSocket URL:', wsUrl);
+    console.log('Settings Websocket URL:', settings.WS_API_URL);
+
     return wsUrl;
   }
 
