@@ -30,8 +30,6 @@ const getEnvVars = (env = process.env.APP_ENV) => {
 
 const envVars = getEnvVars();
 
-console.log('Using env vars:', envVars);
-
 module.exports = {
     expo: {
         name: "Femida",

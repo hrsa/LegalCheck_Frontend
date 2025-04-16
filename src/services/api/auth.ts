@@ -61,6 +61,6 @@ export const updateUser = async (userData: ProfileUpdateData) => {
 };
 
 export const register = async (registerData: UserRegister) => {
-    const response = await apiClient.post("/register", registerData);
+    const response = await apiClient.post("/register/", registerData);
     return response.data as User;
 };

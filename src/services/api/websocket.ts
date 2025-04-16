@@ -26,7 +26,6 @@ class WebSocketService {
       return false;
     }
 
-    // If connected to a different conversation, disconnect first and wait for it to complete
     if (this.socket) {
       console.log('Disconnecting from previous WebSocket before connecting to new one');
       await this.disconnect();
@@ -180,14 +179,14 @@ class WebSocketService {
     let wsUrl = '';
 
     if (!settings.MOBILE_PLATFORM) {
-      wsUrl = `${settings.WS_API_URL}/ws/conversations/${conversationId}`;
+      wsUrl = `${settings.WS_API_URL}/conversations/${conversationId}`;
     } else {
       const token = await getToken();
       if (!token) {
         console.error('No authentication token found');
         return null;
       }
-      wsUrl = `${settings.WS_API_URL}/ws/conversations/${conversationId}?token=${encodeURIComponent(token)}`;
+      wsUrl = `${settings.WS_API_URL}/conversations/${conversationId}?token=${encodeURIComponent(token)}`;
     }
 
     return wsUrl;
