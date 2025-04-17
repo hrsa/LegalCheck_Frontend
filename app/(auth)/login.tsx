@@ -1,6 +1,6 @@
 import {useAuthStore} from "../../src/stores/authStore";
 import {useState} from "react";
-import {View, Text, Platform} from "react-native";
+import {View, Text, Platform, Image} from "react-native";
 import Button from "../../src/components/Button";
 import TextInput from "../../src/components/TextInput";
 import {router} from "expo-router";
@@ -13,6 +13,7 @@ export default function LoginScreen() {
 
     return (
         <View className="flex-1 justify-center px-6 max-w-md self-center gap-1">
+            <Image source={require("../../assets/legalcheck.webp")} style={{width: 150, height: 150}} className="mb-6 mx-auto" />
             <Text>Email:</Text>
             <TextInput
                 placeholder="Email"

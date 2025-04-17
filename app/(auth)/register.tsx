@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text } from "react-native";
+import {View, Text, Image} from "react-native";
 import { router } from "expo-router";
 import Button from "../../src/components/Button";
 import TextInput from "../../src/components/TextInput";
@@ -63,6 +63,7 @@ export default function RegisterScreen() {
 
     return (
         <View className="flex-1 justify-center px-6 max-w-md self-center gap-1">
+            <Image source={require("../../assets/legalcheck.webp")} style={{width: 150, height: 150}} className="mb-6 mx-auto" />
             <Text className="text-2xl font-bold mb-6 text-center">Create an Account</Text>
 
             <Text>Email:</Text>
