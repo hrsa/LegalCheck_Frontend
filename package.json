@@ -21,7 +21,7 @@
     "axios": "^1.8.4",
     "cross-env": "^7.0.3",
     "dotenv": "^16.5.0",
-    "expo": "~52.0.43",
+    "expo": "~52.0.46",
     "expo-constants": "^17.0.8",
     "expo-document-picker": "^13.0.3",
     "expo-dynamic-fonts": "^1.1.4",

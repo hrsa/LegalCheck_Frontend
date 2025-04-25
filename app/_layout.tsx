@@ -4,6 +4,7 @@ import {useAuthStore} from "../src/stores/authStore";
 import {useEffect} from "react";
 import {ActivityIndicator, View} from "react-native";
 import { GlobalNotification } from "../src/components/GlobalNotification";
+import Head from "expo-router/head";
 
 function InitialLayout() {
     const { user, loading, fetchUser } = useAuthStore();
@@ -36,6 +37,15 @@ function InitialLayout() {
 
     return (
         <View style={{ flex: 1 }}>
+            <Head>
+                <title>Femida - Legal Document Analysis</title>
+                <meta name="description" content="Femida helps you analyze legal documents and contracts with AI-powered tools." />
+                <meta name="keywords" content="legal, document analysis, contracts, AI, legal tech" />
+                <meta property="og:title" content="Femida - Legal Document Analysis" />
+                <meta property="og:description" content="Femida helps you analyze legal documents and contracts with AI-powered tools." />
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content="https://femida.app" />
+            </Head>
             <Stack screenOptions={{
                 headerShown: false
             }} />

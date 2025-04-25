@@ -9,7 +9,7 @@ export default function ProtectedLayout() {
             <NavigationMenu />
             <View style={{ flex: 1 }}>
                 <Stack screenOptions={{
-                    headerShown: false
+                    headerShown: false,
                 }} />
             </View>
         </View>
